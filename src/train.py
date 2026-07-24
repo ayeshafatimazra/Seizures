@@ -59,15 +59,20 @@ def _metrics(y_true, y_prob):
             "f1": f1_score(y_true, y_pred, zero_division=0)}
 
 
-def cross_validate(X, y, groups, n_splits=None):
-    """GroupKFold CV across models. Returns results dict + prints a table."""
+def cross_validate(X, y, groups, n_splits=None, models=None):
+    """GroupKFold CV across models. Returns results dict + prints a table.
+
+    `models` optionally restricts which estimators to run (default all three).
+    The RBF-SVM is O(n^2-n^3) and impractical past a few thousand epochs, so the
+    full-cohort run passes models=("logreg", "rf")."""
     n_groups = len(set(groups))
     n_splits = n_splits or min(5, n_groups)
     if n_splits < 2:
         raise RuntimeError(f"Need >=2 subjects for grouped CV, got {n_groups}.")
     gkf = GroupKFold(n_splits=n_splits)
+    chosen = _models() if models is None else {n: make_model(n) for n in models}
     results = {}
-    for name, model in _models().items():
+    for name, model in chosen.items():
         fold_metrics = []
         for tr, te in gkf.split(X, y, groups):
             if len(set(y[tr])) < 2:

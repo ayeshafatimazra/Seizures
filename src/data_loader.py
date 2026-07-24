@@ -229,6 +229,22 @@ def synth_recording(minutes=120, sfreq=256.0, seed=RANDOM_STATE,
                     seizures=seizures, subject=subject, synthetic=True)
 
 
+def harmonize_to(recs, channels):
+    """Force every recording onto an exact, fixed channel list (order preserved),
+    so feature vectors line up across patients processed in separate passes.
+    Raises if a recording is missing a required channel (keeps the montage honest
+    rather than silently changing feature dimensionality)."""
+    for r in recs:
+        missing = [c for c in channels if c not in r.ch_names]
+        if missing:
+            raise ValueError(f"{r.subject}: missing required channels {missing}; "
+                             f"has {r.ch_names}")
+        idx = [r.ch_names.index(c) for c in channels]
+        r.data = r.data[idx]
+        r.ch_names = list(channels)
+    return recs
+
+
 def _harmonize_channels(recs):
     """Subset every recording to the channels common to all, in a fixed order,
     so the per-channel feature vectors line up across patients."""

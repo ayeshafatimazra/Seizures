@@ -1,108 +1,136 @@
 # Seizure Prediction from Scalp EEG
 
-A classical-ML pipeline that predicts the **pre-ictal state** — the run-up
-*before* a seizure — from raw scalp EEG, using the [PhysioNet Siena Scalp EEG
-Database](https://physionet.org/content/siena-scalp-eeg/1.0.0/) (14 patients,
-512 Hz, 10–20 montage, 47 seizures over ~128 h).
+I built a classical machine-learning pipeline that attempts to predict the
+**preictal state**, the interval that precedes a seizure, from raw scalp EEG. I
+use the [PhysioNet Siena Scalp EEG Database](https://physionet.org/content/siena-scalp-eeg/1.0.0/)
+(14 patients, 512 Hz, 10-20 montage, 47 documented seizures over roughly 128
+hours).
 
-This is **prediction, not detection**: the model learns to separate *preictal*
-(30 min before onset, minus a 5 min horizon) from *interictal* (>1 h from any
-seizure), so an alarm could fire before the event — not merely flag it as it
-happens.
+This is prediction rather than detection. I train a model to separate
+*preictal* windows (the 30 minutes before onset, excluding a 5-minute horizon)
+from *interictal* windows (more than one hour from any seizure), so that an
+alarm could in principle fire before an event rather than flag it as it occurs.
 
-> **Project status:** runs end-to-end on real Siena data. Metrics below are a
-> **3-patient** baseline (PN00, PN01, PN03; leave-one-patient-out CV). Scaling
-> to all 14 patients: `[TODO — needs external drive]`.
-
----
+> **Project status.** I processed the complete 14-patient cohort. The headline
+> result is a negative one, and I report it as such: pooled, cross-patient
+> prediction from classical features does not generalize on this dataset. I
+> treat the numbers below as a rigorous baseline that future work must beat, not
+> as a working predictor.
 
 ## Results
 
-Two levels of evaluation. **Window-level** asks *can the model tell a preictal
-5 s window from an interictal one?* **Alarm-level** asks the clinical question —
-*how many seizures does the alarm anticipate, and how often does it cry wolf?* —
-because a single artefact can flip dozens of adjacent windows and distort the
-first number in both directions.
+I evaluate at two levels. The **window level** asks whether the model can tell a
+preictal 5-second window from an interictal one. The **alarm level** asks the
+clinical question, how many seizures the system anticipates and how often it
+raises a false alarm, because a single artefact can flip dozens of adjacent
+windows and distort the window-level numbers in both directions.
 
-**Window-level** — leave-one-patient-out (GroupKFold, 3 folds, 580 features/epoch,
-2149 preictal / 1440 interictal 5 s windows):
+**Window level.** Patient-grouped 5-fold cross-validation (no patient appears in
+both train and test), 19-channel 10-20 montage, 380 features per epoch, 28,936
+windows (13,607 preictal and 15,329 interictal) across 14 patients:
 
 | Model | ROC-AUC | Sensitivity | Specificity | F1 |
 |---|---|---|---|---|
-| **Logistic Regression** | **0.65** | 0.86 | 0.23 | 0.74 |
-| Random Forest | 0.64 | 0.88 | 0.12 | 0.74 |
-| RBF SVM | 0.62 | 0.83 | 0.12 | 0.70 |
+| Logistic regression | 0.47 | 0.45 | 0.50 | 0.43 |
+| Random forest | 0.42 | 0.43 | 0.46 | 0.41 |
 
-**Alarm-level** — Firing-Power post-processing (SPH 5 min, SOP 30 min), logistic
-regression, same LOPO-CV, threshold selected on the training patients:
+**Alarm level.** Firing-Power post-processing (SPH 5 min, SOP 30 min), logistic
+regression, same patient-grouped cross-validation, with the alarm threshold
+selected on the training patients only:
 
-| Operating point | Event sensitivity | FPR/h | Warning time | vs. chance |
-|---|---|---|---|---|
-| Firing Power + tuned θ | **9/9 = 1.00** | 2.90 | 28.9 min | p = 0.09 |
+| Operating point | Event sensitivity | FPR/h | Warning time | Random predictor | p |
+|---|---|---|---|---|---|
+| Default (theta = 0.5) | 32/42 = 0.76 | 2.10 | 33.2 min | 0.65 | 0.086 |
+| Tuned threshold | 21/42 = 0.50 | 1.14 | 31.8 min | 0.44 | 0.244 |
 
-**Honest read.** Window-level AUC ≈ 0.65 is *above chance* for cross-patient
-prediction from classical features — a legitimately hard task — but the default
-operating point over-calls preictal (high sensitivity, low specificity). The
-alarm layer makes the real problem legible: the system *does* flag every one of
-the 9 seizures, but at **2.9 false alarms per hour**, and at that alarm rate an
-*unspecific random predictor* would already anticipate ~77% of seizures by luck
-— so the result is **not yet statistically distinguishable from chance (p =
-0.09)** on only 9 seizures. Beating chance, not maximising sensitivity, is the
-bar. The levers are more patients (the p-value shrinks with seizure count),
-per-patient calibration, and the Phase-2 temporal CNN. These numbers are the
-baseline those must beat, not a finished result.
+### What I read from this
 
-> Caveat on the sensitivity number: the loader crops each seizure's run-up into
-> a tight preictal segment, so a preictal crop is dominated by preictal windows
-> — firing power almost always crosses threshold there, making event sensitivity
-> an optimistic upper bound. The FPR/h, measured on separate interictal crops,
-> is the trustworthy burden figure. Continuous multi-hour recordings (Phase 2
-> data handling) will tighten sensitivity.
+On an initial three-patient subset I had measured an ROC-AUC of 0.65, which
+looked encouraging. On all 14 patients the cross-patient AUC falls to roughly
+0.47, at or slightly below chance. This is not a defect in the pipeline. It is
+the generalization gap that the seizure-prediction literature documents
+repeatedly: a model fit on a few patients rarely transfers to unseen patients,
+because preictal signatures are largely patient-specific, and small samples make
+cross-patient estimates look far better than they are.
 
----
+The alarm layer tells the same story in clinical terms. At its most sensitive
+operating point the system flags 32 of 42 seizures, but it does so at 2.1 false
+alarms per hour, and at that alarm rate an unspecific random predictor would
+already anticipate about 65 percent of seizures by chance. The result is
+therefore not statistically distinguishable from chance (p = 0.086). Tightening
+the threshold lowers the false-alarm rate to 1.14 per hour but drops sensitivity
+to chance level as well.
+
+I regard this as the honest and useful outcome of the project: a correctly
+evaluated cross-patient baseline, and clear evidence that the next step is
+patient-specific modelling rather than more pooled features.
+
+> **Caveat on the sensitivity figure.** My loader crops each seizure's run-up
+> into a tight preictal segment, so a preictal crop is dominated by preictal
+> windows and firing power almost always crosses the threshold there. Event
+> sensitivity is therefore an optimistic upper bound. The false-alarm rate,
+> which I measure on separate interictal crops, is the trustworthy burden
+> figure. Continuous multi-hour recordings would tighten the sensitivity
+> estimate.
 
 ## Pipeline
 
 ```
-load EDF ─► preprocess ─► QC ─► windowed features ─► classical ML ─► alarm layer
- (MNE)      notch 50 Hz   SNR   5 s epochs            GroupKFold CV    Firing Power
-            bandpass      flat  spectral + temporal   LogReg/RF/SVM    → event Sens
-            bad-chan interp clip                       AUC·Sens·Spec    + FPR/h · chance
+load EDF -> preprocess -> QC -> windowed features -> classical ML -> alarm layer
+ (MNE)      notch 50 Hz   SNR   5 s epochs           grouped CV      Firing Power
+            bandpass      flat  spectral + temporal  LogReg / RF     event Sens
+            bad-chan interp clip                      AUC Sens Spec   FPR/h + chance
             avg reference
 ```
 
-- **Preprocess** (`src/preprocess.py`) — 50 Hz notch + harmonics, 0.5–70 Hz
-  bandpass, statistical bad-channel detection, **MNE spherical-spline
-  interpolation** from 10–20 positions, common-average reference.
-- **QC** (`src/qc.py`) — per-channel **SNR in dB** (in-band vs >100 Hz power),
-  flatline and clipping detection, pass/fail gate.
-- **Features** (`src/features.py`) — *spectral:* absolute + relative band power
-  (δ θ α β γ), theta/beta & slowing ratios, spectral edge frequency (SEF95);
-  *temporal:* line length, RMS, variance, zero-crossing rate, Hjorth
-  (activity/mobility/complexity).
-- **Labelling** (`src/dataset.py`) — preictal vs interictal with a seizure
-  prediction horizon and postictal/guard exclusions to prevent leakage; also
-  emits per-epoch timing so the alarm layer can rebuild each recording's stream.
-- **Model** (`src/train.py`) — standardised features, class-balanced LogReg /
-  RandomForest / RBF-SVM, **GroupKFold** by patient.
-- **Alarm layer** (`src/postprocess.py`, `src/evaluate.py`) — **Firing-Power**
-  smoothing of the preictal probability over the SOP window, one alarm per
-  threshold crossing, then a refractory silence. Event-level **sensitivity**,
-  **false predictions per hour (FPR/h)**, and warning time — benchmarked against
-  the sensitivity an **unspecific random predictor** reaches at the same FPR/h
-  (binomial p-value). Threshold picked on training patients only.
+- **Preprocessing** (`src/preprocess.py`). I apply a 50 Hz notch filter and its
+  harmonics, a 0.5-70 Hz bandpass, statistical bad-channel detection, MNE
+  spherical-spline interpolation from 10-20 electrode positions, and a
+  common-average reference.
+- **Quality control** (`src/qc.py`). I compute per-channel signal-to-noise ratio
+  in decibels (in-band power against power above 100 Hz), detect flatlines and
+  clipping, and apply a pass/fail gate.
+- **Features** (`src/features.py`). For each window I extract spectral features
+  (absolute and relative band power in delta, theta, alpha, beta, and gamma; the
+  theta/beta and slowing ratios; and the 95 percent spectral edge frequency) and
+  temporal features (line length, RMS, variance, zero-crossing rate, and the
+  three Hjorth parameters). I harmonize every patient onto a fixed 19-channel
+  10-20 montage, giving 380 features per epoch.
+- **Labelling** (`src/dataset.py`). I label preictal against interictal using a
+  seizure prediction horizon and postictal and guard exclusions to prevent
+  leakage, and I emit per-epoch timing so the alarm layer can rebuild each
+  recording's probability stream.
+- **Models** (`src/train.py`). I standardize the features and fit class-balanced
+  logistic regression and random forest, with patient-grouped cross-validation
+  so no patient appears in both train and test. I omit the RBF-SVM at cohort
+  scale because it is computationally intractable on tens of thousands of epochs.
+- **Alarm layer** (`src/postprocess.py`, `src/evaluate.py`). I smooth the
+  preictal probability with the Firing-Power method over the Seizure Occurrence
+  Period, raise one alarm per threshold crossing, and then hold a refractory
+  silence. I report event-level sensitivity, false predictions per hour, and
+  warning time, and I benchmark each result against the sensitivity that an
+  unspecific random predictor would reach at the same false-alarm rate, with a
+  binomial p-value.
 
-### Prediction, precisely (SPH + SOP)
+### Defining prediction precisely (SPH and SOP)
 
-Two parameters define the task ([Winterhalder 2003](https://doi.org/10.1016/j.yebeh.2003.05.007);
-[SzCORE / Dan 2024](https://onlinelibrary.wiley.com/doi/10.1111/epi.18113)):
-the **Seizure Prediction Horizon (SPH)** is the intervention gap between the
-alarm and the earliest the seizure may come (here 5 min); the **Seizure
-Occurrence Period (SOP)** is the window it's then expected within (here 30 min).
-A correct prediction is an alarm whose SOP contains the true onset. Longer SPH
-and shorter SOP make a harder, more clinically useful predictor.
+Two parameters define the task (Winterhalder et al. 2003;
+[SzCORE, Dan et al. 2024](https://onlinelibrary.wiley.com/doi/10.1111/epi.18113)).
+The Seizure Prediction Horizon (SPH) is the intervention gap between the alarm
+and the earliest the seizure may arrive, which I set to 5 minutes. The Seizure
+Occurrence Period (SOP) is the window within which the seizure is then expected,
+which I set to 30 minutes. I count a prediction as correct when an alarm's SOP
+contains the true onset. A longer SPH and a shorter SOP define a harder and more
+clinically useful predictor.
 
----
+## Data handling on a constrained disk
+
+The full database is about 20 GB and my machine had limited free space, so I
+never hold more than one patient at a time (`build_all.py`). For each patient I
+sync the recordings from PhysioNet's public S3 bucket, extract and cache the
+feature matrix, and then delete the raw EDF files before moving on. Peak
+additional disk use is a single patient, at most 3.4 GB. The step is resumable:
+a re-run skips any patient whose features are already cached.
 
 ## Run it
 
@@ -110,49 +138,51 @@ and shorter SOP make a harder, more clinically useful predictor.
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 
-# real data: drop Siena patient folders under data/raw/PNxx/ then:
+# full 14-patient cohort, downloaded and cached one patient at a time:
+python build_all.py            # extract (resumable) then evaluate
+python build_all.py --eval     # re-aggregate caches and evaluate only
+
+# single run on whatever is already under data/raw/PNxx/:
 python run_pipeline.py
 
-# no data yet? runs on a synthetic EEG fallback with an injected preictal signature:
+# no data yet? a synthetic EEG fallback with an injected preictal signature:
 python run_pipeline.py --synthetic
 ```
 
-Get the data (no full 20 GB download needed — pull per patient):
+To pull one patient by hand:
 
 ```bash
 aws s3 sync --no-sign-request \
   s3://physionet-open/siena-scalp-eeg/1.0.0/PN00/ data/raw/PN00/
 ```
 
----
-
 ## Roadmap
 
-- [x] Preprocessing + QC + classical ML baseline (this repo)
-- [x] Real-data metrics on 3-patient subset (AUC 0.65, LOPO-CV)
-- [x] **Alarm layer:** Firing-Power post-processing + event-level evaluation
+- [x] Preprocessing, QC, and classical ML baseline
+- [x] Alarm layer: Firing-Power post-processing and event-level evaluation
   (sensitivity, FPR/h, warning time) benchmarked against a random predictor
-- [x] Honest threshold selection on training patients (no test-set peeking)
-- [ ] Scale to all 14 patients — the fix for the not-yet-significant p-value
-- [ ] Continuous multi-hour streams so event sensitivity isn't crop-optimistic
-- [ ] Per-patient (personalised) models vs pooled
-- [ ] **Phase 2:** PyTorch temporal CNN on raw/spectrogram windows
-- [ ] Sibling projects: Alzheimer's EEG classification · motor-imagery BCI
+- [x] Honest threshold selection on training patients, with no test-set peeking
+- [x] Full 14-patient cohort processed on a disk-constrained machine
+- [x] Rigorous negative result: pooled cross-patient prediction does not beat chance
+- [ ] Patient-specific (personalized) models, the likely source of real signal
+- [ ] Continuous multi-hour streams so event sensitivity is not crop-optimistic
+- [ ] Phase 2: a PyTorch temporal CNN on raw or spectrogram windows
 
 ## Key references
 
-- Winterhalder et al. (2003), *The seizure-prediction characteristic* — SPH/SOP
-  framework and the unspecific-random-predictor benchmark.
-- Teixeira et al. (2012) / Nature Sci. Rep. (2023),
-  [*post-processing as a chronology*](https://www.nature.com/articles/s41598-023-50609-z)
-  — the Firing-Power alarm method used here.
-- Dan et al. (2024), [*SzCORE*](https://onlinelibrary.wiley.com/doi/10.1111/epi.18113)
-  — standard for event-based scoring and FPR-per-day reporting.
-- [Review of seizure-prediction eval pitfalls](https://pmc.ncbi.nlm.nih.gov/articles/PMC9732735/)
-  — why window-level metrics and random-split CV overstate performance.
+- Winterhalder et al. (2003), *The seizure-prediction characteristic*. Source of
+  the SPH and SOP framework and the unspecific-random-predictor benchmark.
+- Teixeira et al. (2012) and
+  [Nature Sci. Rep. (2023)](https://www.nature.com/articles/s41598-023-50609-z),
+  on post-processing as a chronology. Source of the Firing-Power alarm method I use.
+- Dan et al. (2024), [SzCORE](https://onlinelibrary.wiley.com/doi/10.1111/epi.18113).
+  Standard for event-based scoring and false-alarm reporting.
+- [A review of seizure-prediction evaluation pitfalls](https://pmc.ncbi.nlm.nih.gov/articles/PMC9732735/),
+  on why window-level metrics and random-split cross-validation overstate performance.
 
-## Data & license
+## Data and license
 
-Siena Scalp EEG Database © its authors, released **CC-BY-4.0** via PhysioNet.
-EEG data is **not** redistributed here (see `.gitignore`); download it from the
-source above. Pipeline code in this repo is the author's own work.
+The Siena Scalp EEG Database is copyright its authors and released under
+CC-BY-4.0 through PhysioNet. I do not redistribute the EEG data here (see
+`.gitignore`); download it from the source above. The pipeline code in this
+repository is my own work.

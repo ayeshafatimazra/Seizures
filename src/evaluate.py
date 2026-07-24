@@ -192,7 +192,7 @@ def alarm_evaluate(X, y, groups, meta, model_factory, model_name="logreg",
 def _print(r):
     print(f"\nAlarm-based evaluation  ·  model={r['model']}  ·  "
           f"SPH={r['sph_min']:.0f} min  SOP={r['sop_min']:.0f} min  "
-          f"·  leave-one-patient-out ({r['folds']} folds)")
+          f"·  patient-grouped CV ({r['folds']} folds)")
     print("-" * 72)
     print(f"{'operating point':<16}{'Sens':>7}{'FPR/h':>8}{'warn(min)':>11}"
           f"{'seiz':>6}{'pred':>6}{'FA':>5}{'chance':>8}{'p':>8}")
