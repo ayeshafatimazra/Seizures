@@ -37,11 +37,28 @@ def _label_epoch(t0, t1, seizures):
 
 
 def build_epochs(recordings, verbose=False):
-    """Return X (n_epochs, n_feat), y, groups (subjects), feat_names."""
-    win = int(WINDOW_SEC)
+    """Slice recordings into labelled epochs.
+
+    Returns X (n_epochs, n_feat), y, groups (subjects), feat_names, and `meta` —
+    the per-epoch timing needed to reconstruct each recording's probability
+    stream for the alarm layer:
+
+        meta["crop"] : int array, which recording (== continuous crop) each epoch belongs to
+        meta["t0"]   : float array, epoch start time (s) within its crop
+        meta["crops"]: list[dict] indexed by crop id, {subject, seizures, duration}
+
+    Each Recording is one continuous crop (the loader already carves multi-hour
+    EDFs into short preictal + interictal segments), so grouping epochs by
+    meta["crop"] and sorting by t0 gives a gap-aware, time-ordered stream.
+    """
     X, y, groups = [], [], []
+    ep_crop, ep_t0 = [], []
+    crops = []
     feat_names = None
-    for rec in recordings:
+    for cid, rec in enumerate(recordings):
+        crops.append({"subject": rec.subject,
+                      "seizures": list(rec.seizures),
+                      "duration": float(rec.duration_sec)})
         w = int(WINDOW_SEC * rec.sfreq)
         step = int(STEP_SEC * rec.sfreq)
         n = rec.data.shape[1]
@@ -56,10 +73,13 @@ def build_epochs(recordings, verbose=False):
             X.append(vec)
             y.append(lab)
             groups.append(rec.subject)
+            ep_crop.append(cid)
+            ep_t0.append(t0)
             kept[lab] += 1
         if verbose:
             print(f"  [{rec.subject}] preictal={kept[1]:4d} interictal={kept[0]:4d}"
                   f"  seizures={len(rec.seizures)}")
     if not X:
         raise RuntimeError("No epochs built — check labelling windows vs recording length.")
-    return np.asarray(X), np.asarray(y), np.asarray(groups), feat_names
+    meta = {"crop": np.asarray(ep_crop), "t0": np.asarray(ep_t0), "crops": crops}
+    return np.asarray(X), np.asarray(y), np.asarray(groups), feat_names, meta

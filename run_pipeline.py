@@ -22,7 +22,8 @@ from data_loader import load_dataset
 from preprocess import preprocess
 from qc import qc_report
 from dataset import build_epochs
-from train import cross_validate
+from train import cross_validate, make_model
+from evaluate import alarm_evaluate
 from config import OUTPUTS
 
 
@@ -48,12 +49,16 @@ def main(prefer_real=True):
     qc_df.to_csv(OUTPUTS / "qc_report.csv", index=False)
 
     print("\n[4] Feature extraction + labelling (preictal vs interictal)")
-    X, y, groups, names = build_epochs(clean, verbose=True)
+    X, y, groups, names, meta = build_epochs(clean, verbose=True)
     print(f"\n    X = {X.shape}  ·  features/epoch = {X.shape[1]}  ·  "
           f"positives(preictal) = {int(y.sum())}/{len(y)}  ·  subjects = {len(set(groups))}")
 
-    print("\n[5] Classical ML  —  subject-grouped cross-validation")
+    print("\n[5] Classical ML  —  window-level, subject-grouped cross-validation")
     cross_validate(X, y, groups)
+
+    print("\n[6] Alarm layer  —  event-level evaluation (Firing Power + tuned threshold)")
+    alarm_evaluate(X, y, groups, meta, model_factory=lambda: make_model("logreg"),
+                   model_name="logreg")
 
     print("\nDONE. Artifacts in ./outputs/  "
           "(next phase: PyTorch temporal CNN — see README).")

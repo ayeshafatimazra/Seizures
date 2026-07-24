@@ -46,6 +46,18 @@ POSTICTAL_SEC = 15 * 60                    # exclude 15 min after seizure end
 INTERICTAL_GUARD_SEC = 60 * 60            # interictal must be >1 h from any seizure
 INTERICTAL_MAX_SEC = 40 * 60              # cap interictal pulled per patient (balance + memory)
 
+# ---------------------------------------------------------------- alarm layer
+# Window-level probabilities are noisy; the clinical object is an ALARM. We
+# smooth the preictal probability with the Firing-Power method (Teixeira 2012),
+# raise one alarm when it crosses a threshold, then stay silent for a
+# refractory period. Metrics are then event-level: sensitivity + false
+# predictions per hour (FPR/h), the pair the prediction literature reports.
+SOP_SEC = PREICTAL_SEC                     # Seizure Occurrence Period == labelled preictal window
+FP_WINDOW_SEC = SOP_SEC                     # firing-power smoothing window (== SOP)
+FP_THRESHOLD = 0.5                          # default firing-power alarm threshold in [0,1]
+FPR_BUDGET_PER_H = 0.5                      # threshold-tuning target: keep FPR/h at or below this
+REFRACTORY_SEC = SPH_SEC + SOP_SEC          # post-alarm silence (the predicted window must pass)
+
 # canonical Siena EEG montage (29 ch) — real EDFs are cropped/reordered onto the
 # subset of these that each recording actually contains (case-insensitive match).
 SIENA_CHANNELS = [

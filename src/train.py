@@ -22,22 +22,31 @@ from sklearn.metrics import roc_auc_score, confusion_matrix, f1_score
 from config import RANDOM_STATE, OUTPUTS
 
 
-def _models():
-    return {
-        "logreg": Pipeline([
+def make_model(name="logreg"):
+    """Return a fresh, unfitted pipeline by name. Shared by the window-level CV
+    here and the alarm-based evaluation in evaluate.py so both score the same
+    estimator."""
+    if name == "logreg":
+        return Pipeline([
             ("imp", SimpleImputer()), ("sc", StandardScaler()),
             ("clf", LogisticRegression(max_iter=2000, class_weight="balanced",
-                                        random_state=RANDOM_STATE))]),
-        "rf": Pipeline([
+                                        random_state=RANDOM_STATE))])
+    if name == "rf":
+        return Pipeline([
             ("imp", SimpleImputer()),
             ("clf", RandomForestClassifier(n_estimators=300, class_weight="balanced",
-                                            n_jobs=-1, random_state=RANDOM_STATE))]),
-        "svm_rbf": Pipeline([
+                                            n_jobs=-1, random_state=RANDOM_STATE))])
+    if name == "svm_rbf":
+        return Pipeline([
             ("imp", SimpleImputer()), ("sc", StandardScaler()),
             ("clf", CalibratedClassifierCV(
                 SVC(kernel="rbf", class_weight="balanced", random_state=RANDOM_STATE),
-                ensemble=False, cv=3))]),
-    }
+                ensemble=False, cv=3))])
+    raise ValueError(f"unknown model: {name}")
+
+
+def _models():
+    return {name: make_model(name) for name in ("logreg", "rf", "svm_rbf")}
 
 
 def _metrics(y_true, y_prob):
