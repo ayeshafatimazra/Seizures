@@ -1,0 +1,13 @@
+# EEG data — never commit (multi-GB, CC-BY, redistribute via PhysioNet only)
+data/raw/
+*.edf
+
+# python
+.venv/
+__pycache__/
+*.pyc
+
+# outputs (keep the dir, ignore heavy artifacts)
+outputs/*.pkl
+outputs/*.joblib
+.DS_Store
