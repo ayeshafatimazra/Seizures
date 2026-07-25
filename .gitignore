@@ -10,7 +10,8 @@ __pycache__/
 # outputs (keep the dir, ignore heavy artifacts)
 outputs/*.pkl
 outputs/*.joblib
-# cached per-patient feature matrices (derived, re-buildable)
+# cached per-patient feature matrices and spectrograms (derived, re-buildable)
 outputs/features/
+outputs/spectrograms/
 outputs/*.log
 .DS_Store

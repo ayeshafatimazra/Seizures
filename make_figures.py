@@ -143,11 +143,41 @@ def fig_firing_power_trace(patient="PN03"):
     plt.close(fig)
 
 
+def fig_cnn_vs_logreg():
+    path = OUTPUTS / "deep_results.json"
+    if not path.exists():
+        return
+    dr = json.load(open(path))
+    items = [(p, d["auc_cnn"], d.get("auc_logreg"))
+             for p, d in dr["per_patient"].items()
+             if "auc_cnn" in d and np.isfinite(d.get("auc_logreg", np.nan))]
+    items.sort(key=lambda t: t[2], reverse=True)
+    names = [p for p, _, _ in items]
+    cnn = [c for _, c, _ in items]
+    lr = [l for _, _, l in items]
+    x = np.arange(len(names))
+    fig, ax = plt.subplots(figsize=(7.5, 4))
+    ax.bar(x - 0.2, lr, 0.4, label="classical logreg", color=MUTE)
+    ax.bar(x + 0.2, cnn, 0.4, label="temporal CNN", color=ACCENT)
+    ax.axhline(0.5, ls="--", color="#555", lw=1)
+    ax.set_xticks(x); ax.set_xticklabels(names)
+    ax.set_ylim(0, 1.0); ax.set_ylabel("ROC-AUC (leave-one-seizure-out)")
+    ax.set_title("Deep CNN ties the classical model per patient\n(data-limited: hundreds of windows each)",
+                 fontsize=11, color=INK)
+    ax.legend(fontsize=9, loc="upper right")
+    for s in ("top", "right"):
+        ax.spines[s].set_visible(False)
+    fig.tight_layout()
+    fig.savefig(FIG / "cnn_vs_logreg.png", dpi=150)
+    plt.close(fig)
+
+
 def main():
     fig_cross_vs_personalized()
     fig_per_patient_auc()
     fig_sensitivity_vs_fpr()
     fig_firing_power_trace()
+    fig_cnn_vs_logreg()
     print(f"wrote figures to {FIG}/:")
     for p in sorted(FIG.glob("*.png")):
         print(f"  {p.name}")

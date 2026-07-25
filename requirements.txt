@@ -4,5 +4,5 @@ scipy>=1.11
 scikit-learn>=1.4
 pandas>=2.0
 matplotlib>=3.7
-# phase 2 (deep learning) — install when you reach the CNN stage:
-# torch>=2.2
+# phase 2 (deep learning): temporal CNN on spectrograms (build_deep.py)
+torch>=2.2

@@ -118,6 +118,28 @@ single seizure each, so leave-one-seizure-out has nothing to hold out, and PN00'
 seizures are clustered tightly enough that no window is far enough from all of
 them to serve as clean interictal baseline.
 
+### Phase 2: does a temporal CNN help?
+
+I also trained a small 2D convolutional network on per-channel spectrograms
+(19 channels, 24 frequency bins, 16 time bins per 5 s window), using the exact
+same leave-one-seizure-out folds so it is directly comparable to the classical
+model. The network learns its own features from the time-frequency image instead
+of the 514 hand-designed numbers.
+
+| | Classical logreg | Temporal CNN |
+|---|---|---|
+| Mean patient AUC | 0.69 | 0.69 |
+| Pooled AUC | 0.71 | 0.72 |
+
+![Deep CNN versus classical model, per patient](figures/cnn_vs_logreg.png)
+
+The CNN ties the classical model, marginally ahead pooled and mixed patient by
+patient. This is the honest and expected result: with only a few hundred to a
+few thousand windows per patient, there is not enough data for a deep network to
+pull ahead of well-chosen classical features. The value here is the comparison
+itself and a ready scaffold (`src/deep.py`, `build_deep.py`) that should benefit
+from more data or a move to per-channel sequence models.
+
 I regard this contrast as the honest and useful outcome of the project: a
 correctly evaluated cross-patient baseline that does not beat chance, and a
 patient-specific result that does, which is exactly the regime the clinical
@@ -214,8 +236,12 @@ python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 
 # full 14-patient cohort, downloaded and cached one patient at a time:
-python build_all.py            # extract (resumable) then evaluate
+python build_all.py            # classical: extract (resumable) then evaluate
 python build_all.py --eval     # re-aggregate caches and evaluate only
+
+# phase 2: spectrograms + per-patient temporal CNN (needs torch):
+python build_deep.py           # extract spectrograms (resumable) then CNN eval
+python build_deep.py --eval    # re-aggregate spectrogram caches and evaluate
 
 # single run on whatever is already under data/raw/PNxx/:
 python run_pipeline.py
@@ -249,8 +275,9 @@ aws s3 sync --no-sign-request \
 - [x] Expanded feature set (spectral ratios, 1/f exponent, permutation entropy, FAA)
 - [x] Personalized alarm-level metrics and feature-importance analysis
 - [x] Unit tests for labelling, alarm post-processing, and the chance formula
+- [x] Phase 2: a PyTorch temporal CNN on spectrograms (ties the classical model)
 - [ ] Continuous multi-hour streams so event sensitivity is not crop-optimistic
-- [ ] Phase 2: a PyTorch temporal CNN on raw or spectrogram windows
+- [ ] Per-channel sequence models and more data to give the CNN room to improve
 
 ## Key references
 
