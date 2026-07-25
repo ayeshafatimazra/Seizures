@@ -1,25 +1,25 @@
 """Alarm-based, event-level evaluation of the seizure-prediction system.
 
 Window-level ROC-AUC (see train.py) answers "can the model tell preictal from
-interictal windows?". It does NOT answer the clinical question — "how many
-seizures does the alarm anticipate, and how often does it cry wolf?" — because
+interictal windows?". It does NOT answer the clinical question, "how many
+seizures does the alarm anticipate, and how often does it cry wolf?", because
 one artefact can flip dozens of adjacent windows and inflate both sensitivity
 and the apparent false-alarm count.
 
 This module reports what the prediction literature actually reports:
 
-  * Sensitivity   — fraction of seizures preceded by an alarm inside the
+  * Sensitivity  , fraction of seizures preceded by an alarm inside the
                     prediction window [onset - SPH - SOP, onset - SPH].
-  * FPR/h         — false alarms per interictal hour (warning/ictal/postictal
+  * FPR/h        , false alarms per interictal hour (warning/ictal/postictal
                     time excluded from the denominator).
-  * Warning time  — mean lead time from the (first) correct alarm to onset.
-  * Chance level  — sensitivity an *unspecific random predictor* firing at the
+  * Warning time , mean lead time from the (first) correct alarm to onset.
+  * Chance level , sensitivity an *unspecific random predictor* firing at the
                     SAME FPR/h would reach by luck (Schelter/Winterhalder), with
                     a binomial p-value. A model that doesn't beat this is noise.
 
 CV is leave-one-patient-out (GroupKFold). The firing-power threshold is chosen
 on the TRAINING patients only (never the held-out one), so the operating point
-is picked honestly — the fix for a high-sensitivity/low-specificity classifier.
+is picked honestly, the fix for a high-sensitivity/low-specificity classifier.
 """
 from __future__ import annotations
 import json

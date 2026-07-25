@@ -58,7 +58,7 @@ FP_THRESHOLD = 0.5                          # default firing-power alarm thresho
 FPR_BUDGET_PER_H = 0.5                      # threshold-tuning target: keep FPR/h at or below this
 REFRACTORY_SEC = SPH_SEC + SOP_SEC          # post-alarm silence (the predicted window must pass)
 
-# canonical Siena EEG montage (29 ch) — real EDFs are cropped/reordered onto the
+# canonical Siena EEG montage (29 ch), real EDFs are cropped/reordered onto the
 # subset of these that each recording actually contains (case-insensitive match).
 SIENA_CHANNELS = [
     "Fp1", "F3", "C3", "P3", "O1", "F7", "T3", "T5", "Fc1", "Fc5",

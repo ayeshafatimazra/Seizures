@@ -103,7 +103,7 @@ def _pick_eeg_channels(raw):
 
 def _plan_crops(seizures, duration):
     """Given seizure (onset, offset) times and recording duration, return
-    [(tmin, tmax, seizures_rel, tag)] — a short preictal crop around each
+    [(tmin, tmax, seizures_rel, tag)], a short preictal crop around each
     seizure plus bounded interictal crops kept >guard from every seizure.
     Cropping happens BEFORE load so multi-hour recordings never hit RAM whole.
     """
@@ -186,7 +186,7 @@ def synth_recording(minutes=120, sfreq=256.0, seed=RANDOM_STATE,
     far-from-seizure interictal baseline (early in the record) AND a single
     seizure late in the record with a pre-ictal build-up (rising beta/gamma +
     rhythmic 3 Hz spike-wave at onset). So every synthetic subject contributes
-    both classes — the condition grouped CV needs to score an AUC.
+    both classes, the condition grouped CV needs to score an AUC.
 
     Synthesised at 256 Hz (not 512) purely to keep the demo's memory/compute
     light; the pipeline is sample-rate-driven, so real 512 Hz EDFs run

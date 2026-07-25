@@ -13,6 +13,7 @@ from postprocess import firing_power, raise_alarms
 from evaluate import _chance
 from data_loader import harmonize_to, Recording
 from features import _perm_entropy, extract
+from stats import auprc, bootstrap_auc_ci, permutation_pvalue
 
 
 # ---------------------------------------------------------------- labelling
@@ -106,6 +107,34 @@ def test_perm_entropy_ordered_vs_random():
     noise = rng.standard_normal((1, 500))       # random -> high complexity
     assert _perm_entropy(ramp)[0] < 0.2
     assert _perm_entropy(noise)[0] > 0.8
+
+
+# ---------------------------------------------------------------- statistics
+def test_auprc_perfect_and_prevalence():
+    y = np.array([0, 0, 0, 1])
+    assert auprc(y, np.array([0.1, 0.2, 0.3, 0.9])) == pytest.approx(1.0)   # perfect ranking
+    # a random score should sit near the positive prevalence (0.25 here)
+    rng = np.random.default_rng(0)
+    yb = (rng.random(4000) < 0.25).astype(int)
+    assert auprc(yb, rng.random(4000)) == pytest.approx(0.25, abs=0.05)
+
+
+def test_permutation_pvalue_separates_signal_from_noise():
+    rng = np.random.default_rng(0)
+    y = np.r_[np.zeros(100), np.ones(100)].astype(int)
+    good = np.r_[rng.normal(0, 1, 100), rng.normal(3, 1, 100)]   # separable
+    assert permutation_pvalue(y, good, n_perm=500) < 0.05
+    noise = rng.random(200)                                      # no signal
+    assert permutation_pvalue(y, noise, n_perm=500) > 0.05
+
+
+def test_bootstrap_ci_brackets_auc():
+    rng = np.random.default_rng(0)
+    y = np.r_[np.zeros(200), np.ones(200)].astype(int)
+    prob = np.r_[rng.normal(0, 1, 200), rng.normal(1.5, 1, 200)]
+    lo, hi = bootstrap_auc_ci(y, prob, n_boot=500)
+    from sklearn.metrics import roc_auc_score
+    assert lo < roc_auc_score(y, prob) < hi and 0.5 < lo < hi <= 1.0
 
 
 def test_extract_is_finite_and_named():

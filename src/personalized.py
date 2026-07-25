@@ -65,10 +65,14 @@ def _metrics(y_true, y_prob):
 
 
 def personalized_cv(X, y, groups, meta, model_factory, save=True):
-    """Leave-one-seizure-out CV within each patient. Prints a per-patient table
-    and the mean over evaluable patients; returns a results dict."""
+    """Leave-one-seizure-out CV within each patient. Reports per-patient AUC and
+    AUPRC, and for the pooled out-of-fold predictions a patient-clustered
+    bootstrap 95% CI and a label-permutation p-value against chance."""
+    from stats import auprc, bootstrap_auc_ci, permutation_pvalue
+
     crops = meta["crops"]
-    per_patient, pooled_true, pooled_prob = {}, [], []
+    per_patient = {}
+    pooled_true, pooled_prob, pooled_pat = [], [], []
 
     for patient in sorted(set(groups)):
         pm = groups == patient
@@ -78,27 +82,40 @@ def personalized_cv(X, y, groups, meta, model_factory, save=True):
             per_patient[patient] = {"skipped": reason}
             continue
         aucs, senss, specs = [], [], []
+        pt_true, pt_prob = [], []
         for tr, te in folds:
             model = model_factory()
             model.fit(Xp[tr], yp[tr])
             prob = model.predict_proba(Xp[te])[:, 1]
             a, se, sp = _metrics(yp[te], prob)
             aucs.append(a); senss.append(se); specs.append(sp)
-            pooled_true.append(yp[te]); pooled_prob.append(prob)
+            pt_true.append(yp[te]); pt_prob.append(prob)
+        pt_true = np.concatenate(pt_true); pt_prob = np.concatenate(pt_prob)
+        pooled_true.append(pt_true); pooled_prob.append(pt_prob)
+        pooled_pat.append(np.full(len(pt_true), patient))
         per_patient[patient] = {
             "seizures": len(folds),
             "auc": float(np.nanmean(aucs)),
+            "auprc": auprc(pt_true, pt_prob),
             "sensitivity": float(np.nanmean(senss)),
             "specificity": float(np.nanmean(specs))}
 
     evaluable = {p: r for p, r in per_patient.items() if "auc" in r}
     mean_auc = float(np.nanmean([r["auc"] for r in evaluable.values()])) if evaluable else float("nan")
-    pooled_auc = (roc_auc_score(np.concatenate(pooled_true), np.concatenate(pooled_prob))
-                  if pooled_true else float("nan"))
+    yt = np.concatenate(pooled_true) if pooled_true else np.array([])
+    pp = np.concatenate(pooled_prob) if pooled_prob else np.array([])
+    pat = np.concatenate(pooled_pat) if pooled_pat else np.array([])
+    pooled_auc = roc_auc_score(yt, pp) if len(yt) else float("nan")
+    ci_lo, ci_hi = bootstrap_auc_ci(yt, pp, patient=pat) if len(yt) else (float("nan"), float("nan"))
+    pval = permutation_pvalue(yt, pp) if len(yt) else float("nan")
 
     results = {"n_patients_evaluable": len(evaluable),
                "n_patients_total": len(per_patient),
                "mean_patient_auc": mean_auc, "pooled_auc": pooled_auc,
+               "pooled_auc_ci95": [ci_lo, ci_hi],
+               "pooled_auprc": auprc(yt, pp) if len(yt) else float("nan"),
+               "pooled_prevalence": float(yt.mean()) if len(yt) else float("nan"),
+               "permutation_p_value": pval,
                "per_patient": per_patient}
     _print(results)
     if save:
@@ -209,16 +226,20 @@ def _print_alarm(r):
 
 def _print(r):
     print(f"\nPersonalized (patient-specific) leave-one-seizure-out CV")
-    print("-" * 52)
-    print(f"{'patient':10}{'seiz':>6}{'AUC':>8}{'Sens':>8}{'Spec':>8}")
+    print("-" * 58)
+    print(f"{'patient':10}{'seiz':>6}{'AUC':>8}{'AUPRC':>8}{'Sens':>8}{'Spec':>8}")
     for p in sorted(r["per_patient"]):
         d = r["per_patient"][p]
         if "auc" in d:
-            print(f"{p:10}{d['seizures']:>6}{d['auc']:>8.3f}"
+            print(f"{p:10}{d['seizures']:>6}{d['auc']:>8.3f}{d['auprc']:>8.3f}"
                   f"{d['sensitivity']:>8.3f}{d['specificity']:>8.3f}")
         else:
-            print(f"{p:10}{'--':>6}{'skip: ' + d['skipped']:>24}")
-    print("-" * 52)
+            print(f"{p:10}{'--':>6}{'skip: ' + d['skipped']:>30}")
+    lo, hi = r["pooled_auc_ci95"]
+    print("-" * 58)
     print(f"evaluable patients : {r['n_patients_evaluable']}/{r['n_patients_total']}")
     print(f"mean patient AUC   : {r['mean_patient_auc']:.3f}")
-    print(f"pooled AUC         : {r['pooled_auc']:.3f}")
+    print(f"pooled AUC         : {r['pooled_auc']:.3f}  (95% CI {lo:.3f} to {hi:.3f}, "
+          f"cluster bootstrap by patient)")
+    print(f"pooled AUPRC       : {r['pooled_auprc']:.3f}  (prevalence {r['pooled_prevalence']:.3f})")
+    print(f"permutation p      : {r['permutation_p_value']:.4f}  (label-shuffle null vs chance)")

@@ -91,5 +91,5 @@ def preprocess(rec, verbose=False):
                     subject=rec.subject, synthetic=rec.synthetic)
     meta = {"n_bad": len(bads), "bad_channels": bads, "interp_method": method}
     if verbose:
-        print(f"  [{rec.subject}] bads={bads or '—'} interp={method}")
+        print(f"  [{rec.subject}] bads={bads or 'none'} interp={method}")
     return out, meta

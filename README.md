@@ -1,5 +1,7 @@
 # Seizure Prediction from Scalp EEG
 
+![tests](https://github.com/ayeshafatimazra/Seizures/actions/workflows/tests.yml/badge.svg)
+
 I built a classical machine-learning pipeline that attempts to predict the
 **preictal state**, the interval that precedes a seizure, from raw scalp EEG. I
 use the [PhysioNet Siena Scalp EEG Database](https://physionet.org/content/siena-scalp-eeg/1.0.0/)
@@ -32,10 +34,15 @@ patient appears in both train and test), 19-channel 10-20 montage, 514 features
 per epoch, 28,936 windows (13,607 preictal and 15,329 interictal) across 14
 patients:
 
-| Model | ROC-AUC | Sensitivity | Specificity | F1 |
-|---|---|---|---|---|
-| Logistic regression | 0.47 | 0.46 | 0.49 | 0.43 |
-| Random forest | 0.42 | 0.43 | 0.46 | 0.42 |
+| Model | ROC-AUC | AUPRC | Sensitivity | Specificity | F1 |
+|---|---|---|---|---|---|
+| Logistic regression | 0.47 | 0.46 | 0.46 | 0.49 | 0.43 |
+| Random forest | 0.42 | 0.42 | 0.43 | 0.46 | 0.42 |
+
+The AUPRC of 0.46 sits at the positive prevalence (0.47), which is the
+precision-recall definition of chance. I report AUPRC alongside ROC-AUC because
+under class imbalance ROC-AUC can look deceptively healthy while the model has no
+real hold on the rarer preictal class (Saito and Rehmsmeier 2015).
 
 **Cross-patient, alarm level.** Firing-Power post-processing (SPH 5 min, SOP 30
 min), logistic regression, same patient-grouped cross-validation, with the alarm
@@ -51,12 +58,22 @@ cross-validation within each patient, logistic regression, 11 of 14 patients
 evaluable (the other three lack a second seizure or any captured interictal
 data):
 
-| | ROC-AUC |
+| | Value |
 |---|---|
-| Mean across patients | 0.69 |
-| Pooled | 0.71 |
+| Mean patient ROC-AUC | 0.69 |
+| Pooled ROC-AUC | 0.71, 95% CI [0.59, 0.79] |
+| Pooled AUPRC | 0.75 (prevalence 0.46) |
+| Label-permutation p | 0.0002 |
 | Best patient (PN03) | 0.98 |
 | Worst patient (PN06) | 0.40 |
+
+The pooled AUC of 0.71 is significant on two independent tests: a
+patient-clustered bootstrap 95% confidence interval of [0.59, 0.79] that
+excludes chance (0.5), and a label-permutation p of 0.0002 (Combrisson and Jerbi
+2015). The bootstrap resamples whole patients rather than windows, so it does not
+understate uncertainty by treating correlated within-patient windows as
+independent. Both confirm the personalized signal is real, not a small-sample
+artefact.
 
 ![Cross-patient versus personalized AUC](figures/cross_vs_personalized_auc.png)
 
@@ -220,6 +237,24 @@ the false-alarm rate (measured on interictal crops) more than the raw sensitivit
 
 ![Firing-power trace with alarm](figures/firing_power_trace.png)
 
+### Statistical validation
+
+Reporting a single AUC is not enough on 11 patients and 42 seizures, so I attach
+an uncertainty and a null to every headline claim (`src/stats.py`):
+
+- **AUPRC** next to ROC-AUC, because under class imbalance the area under the
+  precision-recall curve reflects performance on the rare preictal class, whereas
+  ROC-AUC can stay optimistic (Saito and Rehmsmeier 2015; Davis and Goadrich 2006).
+- **Patient-clustered bootstrap** 95% confidence intervals: I resample whole
+  patients with replacement, not windows, so correlated within-patient windows do
+  not deflate the interval.
+- **Label-permutation test**: I shuffle the labels several thousand times and
+  recompute the pooled AUC to build a non-parametric null, then read the p-value
+  off it (Combrisson and Jerbi 2015; Ojala and Garriga 2010).
+- **Analytical random-predictor benchmark** in the alarm layer: the sensitivity
+  an unspecific Poisson-rate predictor reaches at the measured false-alarm rate,
+  with a binomial p-value (Winterhalder 2003; Schelter 2006; Snyder 2008).
+
 ## Data handling on a constrained disk
 
 The full database is about 20 GB and my machine had limited free space, so I
@@ -294,6 +329,13 @@ aws s3 sync --no-sign-request \
   nonlinear-complexity feature definitions (band powers, tar/bar/dtr, spectral
   centroid, alpha peak frequency, 1/f exponent, permutation entropy, frontal
   alpha asymmetry).
+- Snyder et al. (2008), *Seizure prediction: Any better than chance?*, and
+  Schelter et al. (2006). The random-predictor null hypothesis for alarm-based
+  seizure prediction.
+- Saito and Rehmsmeier (2015) and Davis and Goadrich (2006). Why AUPRC is the
+  right summary metric under class imbalance.
+- Combrisson and Jerbi (2015) and Ojala and Garriga (2010). Label-permutation
+  significance testing for decoding accuracy and AUC.
 
 ## Data and license
 

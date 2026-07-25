@@ -3,7 +3,7 @@
 
 The whole dataset is ~20 GB but we never need it resident at once: each patient
 is synced from PhysioNet's public S3 bucket, sliced into cropped epochs, and its
-(tiny) feature matrix cached to outputs/features/PNxx.pkl — after which the raw
+(tiny) feature matrix cached to outputs/features/PNxx.pkl, after which the raw
 EDFs are freed. Peak extra disk is one patient (≤3.4 GB). Re-runs skip any
 patient already cached, so this is safely resumable.
 
@@ -35,7 +35,7 @@ from personalized import personalized_cv, personalized_alarm
 
 PATIENTS = ["PN00", "PN01", "PN03", "PN05", "PN06", "PN07", "PN09",
             "PN10", "PN11", "PN12", "PN13", "PN14", "PN16", "PN17"]
-KEEP_RAW = {"PN00", "PN01", "PN03"}                 # user's originals — don't delete
+KEEP_RAW = {"PN00", "PN01", "PN03"}                 # user's originals, don't delete
 S3 = "s3://physionet-open/siena-scalp-eeg/1.0.0"
 CACHE = OUTPUTS / "features"
 
@@ -61,7 +61,7 @@ def load_patient(p):
 def process(p):
     cache = CACHE / f"{p}.pkl"
     if cache.exists():
-        print(f"[{p}] cached — skip")
+        print(f"[{p}] cached, skip")
         return
     print(f"[{p}] sync from S3 ...", flush=True)
     sync(p)
@@ -92,7 +92,7 @@ def aggregate():
         crops += m["crops"]
         off += len(m["crops"])
     if not Xs:
-        raise RuntimeError("No cached patients found — run without --eval first.")
+        raise RuntimeError("No cached patients found, run without --eval first.")
     meta = {"crop": np.concatenate(ep_crop), "t0": np.concatenate(ep_t0), "crops": crops}
     return (np.concatenate(Xs), np.concatenate(ys), np.concatenate(gs), names, meta)
 
@@ -109,21 +109,21 @@ def main(eval_only=False):
           f"  ·  preictal={int(y.sum())}/{len(y)}")
     print("=" * 60)
 
-    print("\n[5] Classical ML  —  window-level, subject-grouped cross-validation")
+    print("\n[5] Classical ML, window-level, subject-grouped cross-validation")
     cross_validate(X, y, groups, models=("logreg", "rf"))     # SVM omitted: intractable at cohort scale
 
-    print("\n[6] Alarm layer  —  event-level evaluation")
+    print("\n[6] Alarm layer, event-level evaluation")
     alarm_evaluate(X, y, groups, meta, model_factory=lambda: make_model("logreg"),
                    model_name="logreg")
 
-    print("\n[7] Personalized (patient-specific) models  —  leave-one-seizure-out")
+    print("\n[7] Personalized (patient-specific) models, leave-one-seizure-out")
     personalized_cv(X, y, groups, meta, model_factory=lambda: make_model("logreg"))
 
-    print("\n[8] Personalized alarm layer  —  per-patient event-level evaluation")
+    print("\n[8] Personalized alarm layer, per-patient event-level evaluation")
     personalized_alarm(X, y, groups, meta, model_factory=lambda: make_model("logreg"))
 
     n = len({c["subject"] for c in meta["crops"]})
-    print(f"\nDONE — {n} patients processed. Caches in {CACHE}/.")
+    print(f"\nDONE, {n} patients processed. Caches in {CACHE}/.")
 
 
 if __name__ == "__main__":

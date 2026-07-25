@@ -5,10 +5,10 @@ saved result JSONs. Writes PNGs to figures/.
     python make_figures.py
 
 Figures:
-  1. cross_vs_personalized_auc.png  — the headline contrast (pooled AUC).
-  2. per_patient_auc.png            — per-patient personalized AUC, the heterogeneity.
-  3. sensitivity_vs_fpr.png         — per-patient alarm operating points (responders).
-  4. firing_power_trace.png         — a worked alarm example on a held-out seizure.
+  1. cross_vs_personalized_auc.png , the headline contrast (pooled AUC).
+  2. per_patient_auc.png           , per-patient personalized AUC, the heterogeneity.
+  3. sensitivity_vs_fpr.png        , per-patient alarm operating points (responders).
+  4. firing_power_trace.png        , a worked alarm example on a held-out seizure.
 """
 import json
 import sys

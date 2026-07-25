@@ -39,7 +39,7 @@ def _label_epoch(t0, t1, seizures):
 def build_epochs(recordings, verbose=False):
     """Slice recordings into labelled epochs.
 
-    Returns X (n_epochs, n_feat), y, groups (subjects), feat_names, and `meta` —
+    Returns X (n_epochs, n_feat), y, groups (subjects), feat_names, and `meta` -
     the per-epoch timing needed to reconstruct each recording's probability
     stream for the alarm layer:
 
@@ -80,6 +80,6 @@ def build_epochs(recordings, verbose=False):
             print(f"  [{rec.subject}] preictal={kept[1]:4d} interictal={kept[0]:4d}"
                   f"  seizures={len(rec.seizures)}")
     if not X:
-        raise RuntimeError("No epochs built — check labelling windows vs recording length.")
+        raise RuntimeError("No epochs built, check labelling windows vs recording length.")
     meta = {"crop": np.asarray(ep_crop), "t0": np.asarray(ep_t0), "crops": crops}
     return np.asarray(X), np.asarray(y), np.asarray(groups), feat_names, meta

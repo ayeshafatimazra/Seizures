@@ -34,9 +34,9 @@ def main(prefer_real=True):
 
     recs = load_dataset(prefer_real=prefer_real)
     mode = "REAL Siena EDF" if not recs[0].synthetic else "SYNTHETIC fallback"
-    print(f"\n[1] Loaded {len(recs)} recording(s)  —  mode: {mode}")
+    print(f"\n[1] Loaded {len(recs)} recording(s), mode: {mode}")
 
-    print("\n[2] Preprocess  (notch 50 Hz · bandpass 0.5–70 · bad-chan interp · CAR)")
+    print("\n[2] Preprocess  (notch 50 Hz · bandpass 0.5-70 · bad-chan interp · CAR)")
     clean, qc_rows = [], []
     for rec in recs:
         c, meta = preprocess(rec, verbose=True)
@@ -53,15 +53,15 @@ def main(prefer_real=True):
     print(f"\n    X = {X.shape}  ·  features/epoch = {X.shape[1]}  ·  "
           f"positives(preictal) = {int(y.sum())}/{len(y)}  ·  subjects = {len(set(groups))}")
 
-    print("\n[5] Classical ML  —  window-level, subject-grouped cross-validation")
+    print("\n[5] Classical ML, window-level, subject-grouped cross-validation")
     cross_validate(X, y, groups)
 
-    print("\n[6] Alarm layer  —  event-level evaluation (Firing Power + tuned threshold)")
+    print("\n[6] Alarm layer, event-level evaluation (Firing Power + tuned threshold)")
     alarm_evaluate(X, y, groups, meta, model_factory=lambda: make_model("logreg"),
                    model_name="logreg")
 
     print("\nDONE. Artifacts in ./outputs/  "
-          "(next phase: PyTorch temporal CNN — see README).")
+          "(next phase: PyTorch temporal CNN, see README).")
 
 
 if __name__ == "__main__":

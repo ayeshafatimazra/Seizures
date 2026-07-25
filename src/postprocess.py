@@ -1,5 +1,5 @@
 """Turn a noisy stream of per-window preictal probabilities into discrete
-alarms — the step that separates a *classifier* from a seizure-prediction
+alarms, the step that separates a *classifier* from a seizure-prediction
 *system*.
 
 Raw window-level predictions flicker: a single artefact flips a handful of
@@ -8,7 +8,7 @@ alarm. The literature's fix is the **Firing Power** method (Teixeira et al.
 2012; see also Nature Sci. Rep. 2023 "post-processing stage as a chronology"):
 
   1. smooth the preictal probability over a trailing window the length of the
-     Seizure Occurrence Period (SOP) — the firing power in [0, 1];
+     Seizure Occurrence Period (SOP), the firing power in [0, 1];
   2. raise ONE alarm when firing power crosses a threshold;
   3. stay silent for a refractory period (the predicted window must elapse),
      so one sustained preictal build-up yields one alarm, not hundreds.

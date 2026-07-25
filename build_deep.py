@@ -30,7 +30,7 @@ SPCACHE = OUTPUTS / "spectrograms"
 def process(p):
     cache = SPCACHE / f"{p}.npz"
     if cache.exists():
-        print(f"[{p}] cached — skip"); return
+        print(f"[{p}] cached, skip"); return
     if not (DATA_RAW / p).exists() or not list((DATA_RAW / p).glob("*.edf")):
         print(f"[{p}] sync from S3 ...", flush=True); sync(p)
     print(f"[{p}] preprocess + spectrograms ...", flush=True)
@@ -58,7 +58,7 @@ def aggregate():
         pc = json.loads(str(d["crops"]))
         crops += pc; off += len(pc)
     if not Ss:
-        raise RuntimeError("No spectrogram caches — run without --eval first.")
+        raise RuntimeError("No spectrogram caches, run without --eval first.")
     meta = {"crop": np.concatenate(ep_crop), "t0": np.concatenate(ep_t0), "crops": crops}
     return np.concatenate(Ss), np.concatenate(ys), np.concatenate(gs), meta
 
