@@ -104,6 +104,20 @@ patients reach it.
 
 ![Per-patient sensitivity versus false-alarm rate](figures/sensitivity_vs_fpr.png)
 
+To understand what drives these personalized models, I collapse the standardized
+logistic-regression coefficients onto feature families and average over patients.
+Line length leads, and the two features I added from the NeuroSkill reference,
+permutation entropy and the 1/f power-spectral exponent, rank second and third,
+which is why they earned their place in the set.
+
+![Feature-family importance](figures/feature_importance.png)
+
+Three of the 14 patients are not evaluable in the personalized regime, and this
+is a genuine limitation rather than a gap I can close: PN07 and PN11 have a
+single seizure each, so leave-one-seizure-out has nothing to hold out, and PN00's
+seizures are clustered tightly enough that no window is far enough from all of
+them to serve as clean interictal baseline.
+
 I regard this contrast as the honest and useful outcome of the project: a
 correctly evaluated cross-patient baseline that does not beat chance, and a
 patient-specific result that does, which is exactly the regime the clinical
@@ -208,6 +222,12 @@ python run_pipeline.py
 
 # no data yet? a synthetic EEG fallback with an injected preictal signature:
 python run_pipeline.py --synthetic
+
+# regenerate the README figures from cached features and saved results:
+python make_figures.py
+
+# run the unit tests (labelling, alarm post-processing, chance formula, features):
+pip install pytest && pytest -q
 ```
 
 To pull one patient by hand:
@@ -227,6 +247,8 @@ aws s3 sync --no-sign-request \
 - [x] Rigorous negative result: pooled cross-patient prediction does not beat chance
 - [x] Patient-specific (personalized) models: leave-one-seizure-out, pooled AUC 0.71
 - [x] Expanded feature set (spectral ratios, 1/f exponent, permutation entropy, FAA)
+- [x] Personalized alarm-level metrics and feature-importance analysis
+- [x] Unit tests for labelling, alarm post-processing, and the chance formula
 - [ ] Continuous multi-hour streams so event sensitivity is not crop-optimistic
 - [ ] Phase 2: a PyTorch temporal CNN on raw or spectrogram windows
 
