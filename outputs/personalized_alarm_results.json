@@ -1,15 +1,15 @@
 {
   "threshold": 0.5,
   "pooled": {
-    "sensitivity": 0.5142857142857142,
-    "fpr_per_h": 1.4029595581064493,
-    "warning_min": 33.92314814814815,
+    "sensitivity": 0.4,
+    "fpr_per_h": 1.202536764091242,
+    "warning_min": 32.457142857142856,
     "seizures": 35,
-    "predicted": 18,
-    "false_alarms": 28,
+    "predicted": 14,
+    "false_alarms": 24,
     "interictal_h": 19.95780978732639,
-    "chance_sensitivity": 0.5041489893095125,
-    "p_value_vs_chance": 0.5197173546644661
+    "chance_sensitivity": 0.45188402545604855,
+    "p_value_vs_chance": 0.7833787444570007
   },
   "per_patient": {
     "PN00": {
@@ -17,24 +17,24 @@
     },
     "PN01": {
       "seizures": 2,
-      "predicted": 2,
-      "sensitivity": 1.0,
-      "fpr_per_h": 2.9999951171954473,
-      "warning_min": 34.916666666666664
+      "predicted": 1,
+      "sensitivity": 0.5,
+      "fpr_per_h": 1.4999975585977237,
+      "warning_min": 35.0
     },
     "PN03": {
       "seizures": 2,
       "predicted": 2,
       "sensitivity": 1.0,
-      "fpr_per_h": 0.7499987792988618,
-      "warning_min": 32.416666666666664
+      "fpr_per_h": 0.0,
+      "warning_min": 25.125
     },
     "PN05": {
       "seizures": 3,
       "predicted": 3,
       "sensitivity": 1.0,
-      "fpr_per_h": 1.4999975585977237,
-      "warning_min": 34.72222222222222
+      "fpr_per_h": 0.7499987792988618,
+      "warning_min": 33.516666666666666
     },
     "PN06": {
       "seizures": 2,
@@ -55,20 +55,20 @@
     },
     "PN10": {
       "seizures": 9,
-      "predicted": 6,
-      "sensitivity": 0.6666666666666666,
-      "fpr_per_h": 0.9115449001308071,
-      "warning_min": 34.98611111111111
+      "predicted": 5,
+      "sensitivity": 0.5555555555555556,
+      "fpr_per_h": 1.519241500218012,
+      "warning_min": 33.45333333333333
     },
     "PN11": {
       "skipped": "seiz=1, inter=2"
     },
     "PN12": {
       "seizures": 3,
-      "predicted": 1,
-      "sensitivity": 0.3333333333333333,
-      "fpr_per_h": 1.4999975585977237,
-      "warning_min": 21.866666666666667
+      "predicted": 0,
+      "sensitivity": 0.0,
+      "fpr_per_h": 0.7499987792988618,
+      "warning_min": NaN
     },
     "PN13": {
       "seizures": 3,
@@ -81,7 +81,7 @@
       "seizures": 4,
       "predicted": 1,
       "sensitivity": 0.25,
-      "fpr_per_h": 2.2499963378965853,
+      "fpr_per_h": 1.8749969482471545,
       "warning_min": 35.0
     },
     "PN16": {
@@ -89,14 +89,14 @@
       "predicted": 1,
       "sensitivity": 0.5,
       "fpr_per_h": 2.2499963378965853,
-      "warning_min": 35.0
+      "warning_min": 31.333333333333332
     },
     "PN17": {
       "seizures": 2,
-      "predicted": 1,
-      "sensitivity": 0.5,
-      "fpr_per_h": 0.7499987792988618,
-      "warning_min": 35.0
+      "predicted": 0,
+      "sensitivity": 0.0,
+      "fpr_per_h": 0.0,
+      "warning_min": NaN
     }
   }
 }

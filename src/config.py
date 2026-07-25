@@ -45,6 +45,11 @@ SPH_SEC = 5 * 60                           # Seizure Prediction Horizon: drop 5 
 POSTICTAL_SEC = 15 * 60                    # exclude 15 min after seizure end
 INTERICTAL_GUARD_SEC = 60 * 60            # interictal must be >1 h from any seizure
 INTERICTAL_MAX_SEC = 40 * 60              # cap interictal pulled per patient (balance + memory)
+# Each seizure crop is extended backwards to include a genuine interictal
+# baseline BEFORE the guard band, so the alarm layer must raise firing power from
+# a real floor instead of sitting on an all-preictal crop. This makes event
+# sensitivity and warning time honest rather than optimistic.
+PREICTAL_LEADIN_SEC = 30 * 60             # interictal baseline prepended to each seizure crop
 
 # ---------------------------------------------------------------- alarm layer
 # Window-level probabilities are noisy; the clinical object is an ALARM. We

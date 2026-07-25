@@ -11,23 +11,23 @@
       ],
       "default": {
         "threshold": 0.5,
-        "sensitivity": 0.6666666666666666,
-        "fpr_per_h": 1.4530156143996749,
-        "warning_min": 33.416666666666664,
+        "sensitivity": 0.4444444444444444,
+        "fpr_per_h": 0.6216000975297028,
+        "warning_min": 31.816666666666666,
         "seizures": 9,
-        "predicted": 6,
-        "false_alarms": 5,
-        "interictal_h": 3.4411192491319444
+        "predicted": 4,
+        "false_alarms": 6,
+        "interictal_h": 9.652508138020833
       },
       "tuned": {
-        "threshold": 0.7,
-        "sensitivity": 0.0,
-        "fpr_per_h": 0.0,
-        "warning_min": NaN,
+        "threshold": 0.65,
+        "sensitivity": 0.1111111111111111,
+        "fpr_per_h": 0.10360001625495047,
+        "warning_min": 34.983333333333334,
         "seizures": 9,
-        "predicted": 0,
-        "false_alarms": 0,
-        "interictal_h": 3.4411192491319444
+        "predicted": 1,
+        "false_alarms": 1,
+        "interictal_h": 9.652508138020833
       }
     },
     {
@@ -38,130 +38,130 @@
       ],
       "default": {
         "threshold": 0.5,
-        "sensitivity": 0.7142857142857143,
-        "fpr_per_h": 2.2996463513393963,
-        "warning_min": 33.81666666666667,
-        "seizures": 7,
-        "predicted": 5,
-        "false_alarms": 11,
-        "interictal_h": 4.7833441840277775
-      },
-      "tuned": {
-        "threshold": 0.65,
         "sensitivity": 0.5714285714285714,
-        "fpr_per_h": 1.8815288329140514,
-        "warning_min": 34.979166666666664,
+        "fpr_per_h": 1.4436076092500691,
+        "warning_min": 35.0,
         "seizures": 7,
         "predicted": 4,
-        "false_alarms": 9,
-        "interictal_h": 4.7833441840277775
+        "false_alarms": 16,
+        "interictal_h": 11.083344184027778
+      },
+      "tuned": {
+        "threshold": 0.6,
+        "sensitivity": 0.42857142857142855,
+        "fpr_per_h": 1.2631566580938105,
+        "warning_min": 35.0,
+        "seizures": 7,
+        "predicted": 3,
+        "false_alarms": 14,
+        "interictal_h": 11.083344184027778
       }
     },
     {
       "patients_test": [
         "PN01",
-        "PN06",
-        "PN16"
+        "PN13",
+        "PN17"
       ],
       "default": {
         "threshold": 0.5,
-        "sensitivity": 0.8333333333333334,
-        "fpr_per_h": 2.3076873172008137,
-        "warning_min": 34.31666666666667,
-        "seizures": 6,
-        "predicted": 5,
-        "false_alarms": 11,
-        "interictal_h": 4.766676974826389
+        "sensitivity": 1.0,
+        "fpr_per_h": 1.5359985600013502,
+        "warning_min": 34.547619047619044,
+        "seizures": 7,
+        "predicted": 7,
+        "false_alarms": 16,
+        "interictal_h": 10.416676432291666
       },
       "tuned": {
-        "threshold": 0.65,
-        "sensitivity": 0.6666666666666666,
-        "fpr_per_h": 2.097897561091649,
-        "warning_min": 34.75,
-        "seizures": 6,
-        "predicted": 4,
-        "false_alarms": 10,
-        "interictal_h": 4.766676974826389
+        "threshold": 0.6,
+        "sensitivity": 0.8571428571428571,
+        "fpr_per_h": 1.5359985600013502,
+        "warning_min": 29.38888888888889,
+        "seizures": 7,
+        "predicted": 6,
+        "false_alarms": 16,
+        "interictal_h": 10.416676432291666
       }
     },
     {
       "patients_test": [
         "PN00",
-        "PN05",
+        "PN09",
         "PN11",
-        "PN13"
+        "PN16"
       ],
       "default": {
         "threshold": 0.5,
-        "sensitivity": 0.9166666666666666,
-        "fpr_per_h": 1.943314203658422,
-        "warning_min": 26.618181818181817,
-        "seizures": 12,
+        "sensitivity": 1.0,
+        "fpr_per_h": 1.8947346779803111,
+        "warning_min": 26.26212121212121,
+        "seizures": 11,
         "predicted": 11,
-        "false_alarms": 8,
-        "interictal_h": 4.1166786024305555
+        "false_alarms": 18,
+        "interictal_h": 9.500010850694444
       },
       "tuned": {
-        "threshold": 0.65,
-        "sensitivity": 0.6666666666666666,
-        "fpr_per_h": 1.700399928201119,
-        "warning_min": 23.620833333333334,
-        "seizures": 12,
+        "threshold": 0.6,
+        "sensitivity": 0.7272727272727273,
+        "fpr_per_h": 1.5789455649835926,
+        "warning_min": 29.375,
+        "seizures": 11,
         "predicted": 8,
-        "false_alarms": 7,
-        "interictal_h": 4.1166786024305555
+        "false_alarms": 15,
+        "interictal_h": 9.500010850694444
       }
     },
     {
       "patients_test": [
-        "PN09",
-        "PN12",
-        "PN17"
+        "PN05",
+        "PN06",
+        "PN12"
       ],
       "default": {
         "threshold": 0.5,
-        "sensitivity": 0.625,
-        "fpr_per_h": 1.888107804982484,
-        "warning_min": 34.46666666666667,
+        "sensitivity": 0.25,
+        "fpr_per_h": 1.1806167984032125,
+        "warning_min": 35.0,
         "seizures": 8,
-        "predicted": 5,
-        "false_alarms": 9,
-        "interictal_h": 4.766676974826389
+        "predicted": 2,
+        "false_alarms": 12,
+        "interictal_h": 10.164178602430555
       },
       "tuned": {
-        "threshold": 0.65,
-        "sensitivity": 0.625,
-        "fpr_per_h": 1.0489487805458244,
-        "warning_min": 28.916666666666668,
+        "threshold": 0.6,
+        "sensitivity": 0.25,
+        "fpr_per_h": 0.983847332002677,
+        "warning_min": 35.0,
         "seizures": 8,
-        "predicted": 5,
-        "false_alarms": 5,
-        "interictal_h": 4.766676974826389
+        "predicted": 2,
+        "false_alarms": 10,
+        "interictal_h": 10.164178602430555
       }
     }
   ],
   "pooled": {
     "default": {
-      "sensitivity": 0.7619047619047619,
-      "fpr_per_h": 2.0114749171676105,
-      "warning_min": 32.5269696969697,
+      "sensitivity": 0.6666666666666666,
+      "fpr_per_h": 1.3381422964462588,
+      "warning_min": 32.52528138528138,
       "seizures": 42,
-      "predicted": 32,
-      "false_alarms": 44,
-      "interictal_h": 21.874495985243055,
-      "chance_sensitivity": 0.6342252084426381,
-      "p_value_vs_chance": 0.05646551274136105
+      "predicted": 28,
+      "false_alarms": 68,
+      "interictal_h": 50.81671820746528,
+      "chance_sensitivity": 0.487815899981094,
+      "p_value_vs_chance": 0.014776847622856259
     },
     "tuned": {
-      "sensitivity": 0.5,
-      "fpr_per_h": 1.4171755098226346,
-      "warning_min": 30.566666666666666,
+      "sensitivity": 0.47619047619047616,
+      "fpr_per_h": 1.1019995382498602,
+      "warning_min": 32.74944444444444,
       "seizures": 42,
-      "predicted": 21,
-      "false_alarms": 31,
-      "interictal_h": 21.874495985243055,
-      "chance_sensitivity": 0.5076609899284228,
-      "p_value_vs_chance": 0.6002093180332003
+      "predicted": 20,
+      "false_alarms": 56,
+      "interictal_h": 50.81671820746528,
+      "chance_sensitivity": 0.42362671798091645,
+      "p_value_vs_chance": 0.29520761751882596
     }
   }
 }

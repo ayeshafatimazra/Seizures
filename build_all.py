@@ -14,6 +14,7 @@ Patients you already downloaded (PN00/01/03) keep their raw EDFs; the rest are
 deleted after caching. All raw data is re-syncable with one command, and is
 gitignored either way.
 """
+import json
 import shutil
 import subprocess
 import sys
@@ -29,6 +30,7 @@ from data_loader import (parse_seizure_list, _match_ann, load_edf_segments,
                          harmonize_to)
 from preprocess import preprocess
 from dataset import build_epochs
+from spectrogram import build_spectrograms
 from train import cross_validate, make_model
 from evaluate import alarm_evaluate
 from personalized import personalized_cv, personalized_alarm
@@ -38,6 +40,7 @@ PATIENTS = ["PN00", "PN01", "PN03", "PN05", "PN06", "PN07", "PN09",
 KEEP_RAW = {"PN00", "PN01", "PN03"}                 # user's originals, don't delete
 S3 = "s3://physionet-open/siena-scalp-eeg/1.0.0"
 CACHE = OUTPUTS / "features"
+SPCACHE = OUTPUTS / "spectrograms"
 
 
 def sync(p):
@@ -60,17 +63,25 @@ def load_patient(p):
 
 def process(p):
     cache = CACHE / f"{p}.pkl"
-    if cache.exists():
+    spcache = SPCACHE / f"{p}.npz"
+    if cache.exists() and spcache.exists():
         print(f"[{p}] cached, skip")
         return
     print(f"[{p}] sync from S3 ...", flush=True)
     sync(p)
-    print(f"[{p}] preprocess + build epochs ...", flush=True)
-    clean = [preprocess(r)[0] for r in load_patient(p)]
+    print(f"[{p}] preprocess ...", flush=True)
+    clean = [preprocess(r)[0] for r in load_patient(p)]     # one preprocess, both caches
+
     X, y, groups, names, meta = build_epochs(clean, verbose=True)
     with open(cache, "wb") as f:
         pickle.dump({"X": X, "y": y, "groups": groups, "names": names, "meta": meta}, f)
-    print(f"[{p}] cached  X={X.shape}  preictal={int(y.sum())}/{len(y)}", flush=True)
+    print(f"[{p}] features cached  X={X.shape}  preictal={int(y.sum())}/{len(y)}", flush=True)
+
+    S, sy, sgroups, smeta = build_spectrograms(clean)
+    np.savez_compressed(spcache, S=S, y=sy, groups=sgroups,
+                        crop=smeta["crop"], t0=smeta["t0"], crops=json.dumps(smeta["crops"]))
+    print(f"[{p}] spectrograms cached  S={S.shape}", flush=True)
+
     if p not in KEEP_RAW:
         shutil.rmtree(DATA_RAW / p, ignore_errors=True)
         print(f"[{p}] raw EDFs freed", flush=True)
@@ -99,6 +110,7 @@ def aggregate():
 
 def main(eval_only=False):
     CACHE.mkdir(parents=True, exist_ok=True)
+    SPCACHE.mkdir(parents=True, exist_ok=True)
     if not eval_only:
         for p in PATIENTS:
             process(p)

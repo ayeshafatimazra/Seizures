@@ -17,7 +17,7 @@ import numpy as np
 
 from config import (SFREQ, STD_CHANNELS, SIENA_CHANNELS, DATA_RAW, RANDOM_STATE,
                     PREICTAL_SEC, SPH_SEC, POSTICTAL_SEC, INTERICTAL_GUARD_SEC,
-                    INTERICTAL_MAX_SEC)
+                    INTERICTAL_MAX_SEC, PREICTAL_LEADIN_SEC)
 
 
 @dataclass
@@ -103,17 +103,26 @@ def _pick_eeg_channels(raw):
 
 def _plan_crops(seizures, duration):
     """Given seizure (onset, offset) times and recording duration, return
-    [(tmin, tmax, seizures_rel, tag)], a short preictal crop around each
-    seizure plus bounded interictal crops kept >guard from every seizure.
-    Cropping happens BEFORE load so multi-hour recordings never hit RAM whole.
+    [(tmin, tmax, seizures_rel, tag)], one continuous crop per seizure plus
+    bounded interictal crops kept >guard from every seizure. Cropping happens
+    BEFORE load so multi-hour recordings never hit RAM whole.
+
+    Each seizure crop now reaches back past the interictal guard to include a
+    genuine interictal lead-in (INTERICTAL_GUARD_SEC + PREICTAL_LEADIN_SEC before
+    onset), so the alarm layer must lift firing power from a real baseline rather
+    than sit on an all-preictal crop. The start is clipped at the previous
+    seizure's postictal end, so each crop still holds exactly one seizure and a
+    tightly-spaced pair simply yields whatever clean baseline actually exists.
     """
-    seiz = [(o, (f if f is not None else o + 60)) for o, f in seizures]
+    seiz = sorted((o, (f if f is not None else o + 60)) for o, f in seizures)
     crops = []
-    need = PREICTAL_SEC + SPH_SEC
+    lead = INTERICTAL_GUARD_SEC + PREICTAL_LEADIN_SEC
+    prev_end = -np.inf
     for o, f in seiz:
-        tmin = max(0.0, o - need - 60)
+        tmin = max(0.0, o - lead, prev_end + POSTICTAL_SEC)
         tmax = min(duration, f + POSTICTAL_SEC)     # labeler drops ictal/postictal
         crops.append((tmin, tmax, [(o - tmin, f - tmin)], "preictal"))
+        prev_end = f
 
     def clean(c0, c1):
         return all(c1 < o - INTERICTAL_GUARD_SEC or c0 > f + INTERICTAL_GUARD_SEC

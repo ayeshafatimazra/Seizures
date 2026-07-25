@@ -15,11 +15,11 @@ alarm could in principle fire before an event rather than flag it as it occurs.
 
 > **Project status.** I processed the complete 14-patient cohort and evaluated
 > two regimes. Pooled, cross-patient prediction does not generalize (AUC about
-> 0.47, at or below chance), which is the honest negative baseline. Patient
+> 0.45, at or below chance), which is the honest negative baseline. Patient
 > specific (personalized) models, trained and tested within one person, recover
-> real signal (pooled AUC about 0.71). That contrast is the main result: preictal
-> structure is largely patient-specific, so the personalized setting is the one
-> worth pursuing.
+> real if modest signal (pooled AUC 0.62, 95% CI [0.51, 0.71], permutation
+> p = 0.0002). That contrast is the main result: preictal structure is largely
+> patient-specific, so the personalized setting is the one worth pursuing.
 
 ## Results
 
@@ -31,15 +31,15 @@ windows and distort the window-level numbers in both directions.
 
 **Cross-patient, window level.** Patient-grouped 5-fold cross-validation (no
 patient appears in both train and test), 19-channel 10-20 montage, 514 features
-per epoch, 28,936 windows (13,607 preictal and 15,329 interictal) across 14
+per epoch, 40,008 windows (13,607 preictal and 26,401 interictal) across 14
 patients:
 
 | Model | ROC-AUC | AUPRC | Sensitivity | Specificity | F1 |
 |---|---|---|---|---|---|
-| Logistic regression | 0.47 | 0.46 | 0.46 | 0.49 | 0.43 |
-| Random forest | 0.42 | 0.42 | 0.43 | 0.46 | 0.42 |
+| Logistic regression | 0.45 | 0.32 | 0.42 | 0.49 | 0.34 |
+| Random forest | 0.41 | 0.30 | 0.22 | 0.66 | 0.23 |
 
-The AUPRC of 0.46 sits at the positive prevalence (0.47), which is the
+The AUPRC of 0.32 sits at the positive prevalence (0.34), which is the
 precision-recall definition of chance. I report AUPRC alongside ROC-AUC because
 under class imbalance ROC-AUC can look deceptively healthy while the model has no
 real hold on the rarer preictal class (Saito and Rehmsmeier 2015).
@@ -50,8 +50,8 @@ threshold selected on the training patients only:
 
 | Operating point | Event sensitivity | FPR/h | Warning time | Random predictor | p |
 |---|---|---|---|---|---|
-| Default (theta = 0.5) | 32/42 = 0.76 | 2.01 | 32.5 min | 0.63 | 0.056 |
-| Tuned threshold | 21/42 = 0.50 | 1.42 | 30.6 min | 0.51 | 0.600 |
+| Default (theta = 0.5) | 28/42 = 0.67 | 1.34 | 32.5 min | 0.49 | 0.015 |
+| Tuned threshold | 20/42 = 0.48 | 1.10 | 32.7 min | 0.42 | 0.295 |
 
 **Personalized (patient-specific), window level.** Leave-one-seizure-out
 cross-validation within each patient, logistic regression, 11 of 14 patients
@@ -60,20 +60,22 @@ data):
 
 | | Value |
 |---|---|
-| Mean patient ROC-AUC | 0.69 |
-| Pooled ROC-AUC | 0.71, 95% CI [0.59, 0.79] |
-| Pooled AUPRC | 0.75 (prevalence 0.46) |
+| Mean patient ROC-AUC | 0.60 |
+| Pooled ROC-AUC | 0.62, 95% CI [0.51, 0.71] |
+| Pooled AUPRC | 0.53 (prevalence 0.33) |
 | Label-permutation p | 0.0002 |
-| Best patient (PN03) | 0.98 |
-| Worst patient (PN06) | 0.40 |
+| Best patient (PN03) | 0.93 |
+| Worst patient (PN09) | 0.36 |
 
-The pooled AUC of 0.71 is significant on two independent tests: a
-patient-clustered bootstrap 95% confidence interval of [0.59, 0.79] that
+The pooled AUC of 0.62 is significant on two independent tests: a
+patient-clustered bootstrap 95% confidence interval of [0.51, 0.71] that
 excludes chance (0.5), and a label-permutation p of 0.0002 (Combrisson and Jerbi
 2015). The bootstrap resamples whole patients rather than windows, so it does not
 understate uncertainty by treating correlated within-patient windows as
-independent. Both confirm the personalized signal is real, not a small-sample
-artefact.
+independent. Both confirm the personalized signal is real, if modest, not a
+small-sample artefact. These numbers are lower than an earlier version of this
+project reported, because I since fixed a crop-optimism bug (see below) that had
+inflated them; the honest figure is 0.62.
 
 ![Cross-patient versus personalized AUC](figures/cross_vs_personalized_auc.png)
 
@@ -81,36 +83,36 @@ artefact.
 for sensitivity, leave-one-interictal-crop-out for the false-alarm rate). Alarm
 prediction is viable for a subset of patients but not universally:
 
-| Patient | Event sensitivity | FPR/h |
-|---|---|---|
-| PN03 | 1.00 | 0.75 |
-| PN05 | 1.00 | 1.50 |
-| PN10 | 0.67 | 0.91 |
-| ... | ... | ... |
-| Pooled (11 patients) | 0.51 | 1.40 |
+| Patient | Event sensitivity | FPR/h | Warning time |
+|---|---|---|---|
+| PN03 | 1.00 | 0.00 | 25 min |
+| PN05 | 1.00 | 0.75 | 34 min |
+| PN10 | 0.56 | 1.52 | 34 min |
+| ... | ... | ... | ... |
+| Pooled (11 patients) | 0.40 | 1.20 | |
 
-The pooled alarm result sits at chance because the non-responders drag it down,
-but individual patients such as PN03 (every seizure anticipated at 0.75 false
-alarms per hour) are genuinely useful. This responder / non-responder split is a
-well-documented feature of seizure prediction, not an artefact.
+Measured against a real interictal baseline, the pooled alarm result is at chance
+(sensitivity 0.40, p = 0.78), but individual patients stand out sharply: PN03
+anticipates both of its seizures with zero false alarms per hour, 25 minutes
+ahead. This responder / non-responder split is a well-documented feature of
+seizure prediction. The pooled number is honest and unimpressive; the PN03-style
+cases are where the real signal lives.
 
 ### What I read from this
 
 On an initial three-patient subset I had measured an ROC-AUC of 0.65, which
 looked encouraging. On all 14 patients the cross-patient AUC falls to roughly
-0.47, at or slightly below chance, and the alarm layer does not beat an
-unspecific random predictor (p = 0.056 at the default operating point, p = 0.60
-tuned). This is not a defect in the pipeline. It is the generalization gap that
-the seizure-prediction literature documents repeatedly: a model fit on some
-patients transfers poorly to unseen patients, because preictal signatures are
-largely patient-specific, and small samples make cross-patient estimates look
-far better than they are.
+0.45, at or slightly below chance. This is not a defect in the pipeline. It is
+the generalization gap that the seizure-prediction literature documents
+repeatedly: a model fit on some patients transfers poorly to unseen patients,
+because preictal signatures are largely patient-specific, and small samples make
+cross-patient estimates look far better than they are.
 
 The personalized evaluation confirms this directly. When I train and test within
-a single patient, the pooled ROC-AUC rises to 0.71, and individual patients
-range from highly predictable (PN03 at 0.98, PN05 at 0.98, PN10 at 0.81) to no
-better than chance (PN06 at 0.40, PN09 at 0.47). The signal is real but it lives
-inside each patient, not across the population.
+a single patient, the pooled ROC-AUC rises to 0.62, and individual patients
+range from highly predictable (PN03 at 0.93, PN05 at 0.86, PN10 at 0.68) to no
+better than chance (PN09 at 0.36, PN06 at 0.43). The signal is real but modest,
+and it lives inside each patient, not across the population.
 
 ![Per-patient personalized AUC](figures/per_patient_auc.png)
 
@@ -145,30 +147,36 @@ of the 514 hand-designed numbers.
 
 | | Classical logreg | Temporal CNN |
 |---|---|---|
-| Mean patient AUC | 0.69 | 0.69 |
-| Pooled AUC | 0.71 | 0.72 |
+| Mean patient AUC | 0.60 | 0.63 |
+| Pooled AUC | 0.62 | 0.66 |
 
 ![Deep CNN versus classical model, per patient](figures/cnn_vs_logreg.png)
 
-The CNN ties the classical model, marginally ahead pooled and mixed patient by
-patient. This is the honest and expected result: with only a few hundred to a
-few thousand windows per patient, there is not enough data for a deep network to
-pull ahead of well-chosen classical features. The value here is the comparison
-itself and a ready scaffold (`src/deep.py`, `build_deep.py`) that should benefit
-from more data or a move to per-channel sequence models.
+On the honest (harder) data, the CNN edges out the classical model, pooled AUC
+0.66 against 0.62, and wins on most patients. The margin is small and both remain
+modest, which is the expected result with only a few hundred to a few thousand
+windows per patient: too little data for a deep network to pull far ahead of
+well-chosen classical features. The value here is the direct comparison and a
+ready scaffold (`src/deep.py`, `build_deep.py`) that should benefit from more
+data or a move to per-channel sequence models.
 
 I regard this contrast as the honest and useful outcome of the project: a
 correctly evaluated cross-patient baseline that does not beat chance, and a
 patient-specific result that does, which is exactly the regime the clinical
 literature treats as viable.
 
-> **Caveat on the sensitivity figure.** My loader crops each seizure's run-up
-> into a tight preictal segment, so a preictal crop is dominated by preictal
-> windows and firing power almost always crosses the threshold there. Event
-> sensitivity is therefore an optimistic upper bound. The false-alarm rate,
-> which I measure on separate interictal crops, is the trustworthy burden
-> figure. Continuous multi-hour recordings would tighten the sensitivity
-> estimate.
+> **On honest sensitivity (a bug I fixed).** An earlier version cropped each
+> seizure's run-up tightly, so a preictal crop was almost all preictal windows and
+> firing power crossed the threshold trivially, inflating event sensitivity and
+> pinning every warning time at the ceiling. I now extend each seizure crop back
+> through the interictal guard to include a genuine 30-minute interictal baseline
+> (`PREICTAL_LEADIN_SEC`), clipped at the previous seizure so each crop still holds
+> one seizure. Firing power must now lift from a real floor. The effect is visible
+> in the numbers: pooled personalized AUC dropped from an optimistic 0.71 to an
+> honest 0.62, and warning times now vary from 25 to 35 minutes instead of all
+> sitting at the ceiling. Patients whose seizures are too clustered to yield a
+> clean baseline (for example PN00) are reported as such rather than scored
+> optimistically.
 
 ## Pipeline
 
@@ -197,10 +205,12 @@ load EDF -> preprocess -> QC -> windowed features -> classical ML -> alarm layer
   term. The ratio, index, and complexity definitions follow the NeuroSkill EEG
   data reference. I harmonize every patient onto a fixed 19-channel 10-20
   montage, giving 514 features per epoch.
-- **Labelling** (`src/dataset.py`). I label preictal against interictal using a
-  seizure prediction horizon and postictal and guard exclusions to prevent
-  leakage, and I emit per-epoch timing so the alarm layer can rebuild each
-  recording's probability stream.
+- **Labelling** (`src/dataset.py`, `src/data_loader.py`). I label preictal
+  against interictal using a seizure prediction horizon and postictal and guard
+  exclusions to prevent leakage, and I emit per-epoch timing so the alarm layer
+  can rebuild each recording's probability stream. Each seizure crop is extended
+  back through the guard to include a genuine interictal baseline, so alarm
+  sensitivity is measured against a real floor rather than an all-preictal crop.
 - **Models** (`src/train.py`). I standardize the features and fit class-balanced
   logistic regression and random forest, with patient-grouped cross-validation
   so no patient appears in both train and test. I omit the RBF-SVM at cohort
@@ -228,12 +238,11 @@ which I set to 30 minutes. I count a prediction as correct when an alarm's SOP
 contains the true onset. A longer SPH and a shorter SOP define a harder and more
 clinically useful predictor.
 
-The figure below is one worked example on a held-out seizure from PN03. The
-firing power (the smoothed preictal probability) rises through the SOP window and
-crosses the alarm threshold, raising a single alarm well before onset. It also
-makes the crop-optimism caveat visible: because this preictal crop is dominated
-by preictal windows, the firing power stays high throughout, which is why I trust
-the false-alarm rate (measured on interictal crops) more than the raw sensitivity.
+The figure below is one worked example on a held-out seizure from PN03. The crop
+now opens with a genuine interictal baseline, where firing power stays low, and
+then climbs through the SOP window to cross the alarm threshold, raising a single
+alarm about 25 minutes before onset. Because the baseline is real, the alarm is
+earned rather than guaranteed by an all-preictal crop.
 
 ![Firing-power trace with alarm](figures/firing_power_trace.png)
 
@@ -311,7 +320,8 @@ aws s3 sync --no-sign-request \
 - [x] Personalized alarm-level metrics and feature-importance analysis
 - [x] Unit tests for labelling, alarm post-processing, and the chance formula
 - [x] Phase 2: a PyTorch temporal CNN on spectrograms (ties the classical model)
-- [ ] Continuous multi-hour streams so event sensitivity is not crop-optimistic
+- [x] Interictal baseline in every seizure crop so sensitivity is not crop-optimistic
+- [ ] Fully continuous multi-hour streams (beyond the per-seizure baseline used here)
 - [ ] Per-channel sequence models and more data to give the CNN room to improve
 
 ## Key references

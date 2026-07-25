@@ -7,72 +7,72 @@
     16
   ],
   "n_patients_evaluable": 11,
-  "mean_patient_auc_cnn": 0.6905888913532011,
-  "pooled_auc_cnn": 0.7196701699285316,
+  "mean_patient_auc_cnn": 0.631915275484173,
+  "pooled_auc_cnn": 0.6551368237505599,
   "per_patient": {
     "PN00": {
       "skipped": "too few windows (pos=709, neg=0)"
     },
     "PN01": {
       "seizures": 2,
-      "auc_cnn": 0.5407291666666666,
-      "auc_logreg": 0.7064872685185186
+      "auc_cnn": 0.6171504629629629,
+      "auc_logreg": 0.5656435185185186
     },
     "PN03": {
       "seizures": 2,
-      "auc_cnn": 0.9754195601851852,
-      "auc_logreg": 0.9817216435185185
+      "auc_cnn": 0.9584920634920635,
+      "auc_logreg": 0.9342046957671957
     },
     "PN05": {
       "seizures": 3,
-      "auc_cnn": 0.9658043981481482,
-      "auc_logreg": 0.9769502314814816
+      "auc_cnn": 0.8432259835752483,
+      "auc_logreg": 0.8591946542926935
     },
     "PN06": {
       "seizures": 2,
-      "auc_cnn": 0.4413556134259259,
-      "auc_logreg": 0.399754050925926
+      "auc_cnn": 0.4181746766857499,
+      "auc_logreg": 0.431824369222748
     },
     "PN07": {
       "skipped": "only 1 seizure(s)"
     },
     "PN09": {
       "seizures": 3,
-      "auc_cnn": 0.5035127314814815,
-      "auc_logreg": 0.4668344907407407
+      "auc_cnn": 0.44125992063492064,
+      "auc_logreg": 0.3614054232804233
     },
     "PN10": {
       "seizures": 9,
-      "auc_cnn": 0.8111413520858494,
-      "auc_logreg": 0.8055683889664139
+      "auc_cnn": 0.7281877448218956,
+      "auc_logreg": 0.6757734167851225
     },
     "PN11": {
       "skipped": "only 1 seizure(s)"
     },
     "PN12": {
       "seizures": 3,
-      "auc_cnn": 0.6081463004073883,
-      "auc_logreg": 0.5685707196331345
+      "auc_cnn": 0.5178030379414226,
+      "auc_logreg": 0.49849321579811595
     },
     "PN13": {
       "seizures": 3,
-      "auc_cnn": 0.6800192901234569,
-      "auc_logreg": 0.6199093364197531
+      "auc_cnn": 0.5996296296296296,
+      "auc_logreg": 0.5398390652557319
     },
     "PN14": {
       "seizures": 4,
-      "auc_cnn": 0.705794994212963,
-      "auc_logreg": 0.5953313078703704
+      "auc_cnn": 0.5494642857142857,
+      "auc_logreg": 0.4684912367724867
     },
     "PN16": {
       "seizures": 2,
-      "auc_cnn": 0.6513310185185184,
-      "auc_logreg": 0.7144299768518518
+      "auc_cnn": 0.6165211640211641,
+      "auc_logreg": 0.6702893518518518
     },
     "PN17": {
       "seizures": 2,
-      "auc_cnn": 0.7132233796296297,
-      "auc_logreg": 0.7087210648148148
+      "auc_cnn": 0.6611590608465608,
+      "auc_logreg": 0.5907027116402116
     }
   }
 }
