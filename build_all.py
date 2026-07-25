@@ -31,7 +31,7 @@ from preprocess import preprocess
 from dataset import build_epochs
 from train import cross_validate, make_model
 from evaluate import alarm_evaluate
-from personalized import personalized_cv
+from personalized import personalized_cv, personalized_alarm
 
 PATIENTS = ["PN00", "PN01", "PN03", "PN05", "PN06", "PN07", "PN09",
             "PN10", "PN11", "PN12", "PN13", "PN14", "PN16", "PN17"]
@@ -118,6 +118,9 @@ def main(eval_only=False):
 
     print("\n[7] Personalized (patient-specific) models  —  leave-one-seizure-out")
     personalized_cv(X, y, groups, meta, model_factory=lambda: make_model("logreg"))
+
+    print("\n[8] Personalized alarm layer  —  per-patient event-level evaluation")
+    personalized_alarm(X, y, groups, meta, model_factory=lambda: make_model("logreg"))
 
     n = len({c["subject"] for c in meta["crops"]})
     print(f"\nDONE — {n} patients processed. Caches in {CACHE}/.")

@@ -58,6 +58,25 @@ data):
 | Best patient (PN03) | 0.98 |
 | Worst patient (PN06) | 0.40 |
 
+![Cross-patient versus personalized AUC](figures/cross_vs_personalized_auc.png)
+
+**Personalized, alarm level.** Per-patient Firing-Power alarms (leave-one-seizure-out
+for sensitivity, leave-one-interictal-crop-out for the false-alarm rate). Alarm
+prediction is viable for a subset of patients but not universally:
+
+| Patient | Event sensitivity | FPR/h |
+|---|---|---|
+| PN03 | 1.00 | 0.75 |
+| PN05 | 1.00 | 1.50 |
+| PN10 | 0.67 | 0.91 |
+| ... | ... | ... |
+| Pooled (11 patients) | 0.51 | 1.40 |
+
+The pooled alarm result sits at chance because the non-responders drag it down,
+but individual patients such as PN03 (every seizure anticipated at 0.75 false
+alarms per hour) are genuinely useful. This responder / non-responder split is a
+well-documented feature of seizure prediction, not an artefact.
+
 ### What I read from this
 
 On an initial three-patient subset I had measured an ROC-AUC of 0.65, which
@@ -75,6 +94,15 @@ a single patient, the pooled ROC-AUC rises to 0.71, and individual patients
 range from highly predictable (PN03 at 0.98, PN05 at 0.98, PN10 at 0.81) to no
 better than chance (PN06 at 0.40, PN09 at 0.47). The signal is real but it lives
 inside each patient, not across the population.
+
+![Per-patient personalized AUC](figures/per_patient_auc.png)
+
+The same heterogeneity appears at the alarm level. Each point below is one
+patient's operating point; the upper-left corner (high sensitivity, low
+false-alarm rate) is where a predictor is clinically useful, and a handful of
+patients reach it.
+
+![Per-patient sensitivity versus false-alarm rate](figures/sensitivity_vs_fpr.png)
 
 I regard this contrast as the honest and useful outcome of the project: a
 correctly evaluated cross-patient baseline that does not beat chance, and a
@@ -146,6 +174,15 @@ Occurrence Period (SOP) is the window within which the seizure is then expected,
 which I set to 30 minutes. I count a prediction as correct when an alarm's SOP
 contains the true onset. A longer SPH and a shorter SOP define a harder and more
 clinically useful predictor.
+
+The figure below is one worked example on a held-out seizure from PN03. The
+firing power (the smoothed preictal probability) rises through the SOP window and
+crosses the alarm threshold, raising a single alarm well before onset. It also
+makes the crop-optimism caveat visible: because this preictal crop is dominated
+by preictal windows, the firing power stays high throughout, which is why I trust
+the false-alarm rate (measured on interictal crops) more than the raw sensitivity.
+
+![Firing-power trace with alarm](figures/firing_power_trace.png)
 
 ## Data handling on a constrained disk
 
