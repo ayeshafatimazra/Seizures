@@ -11,11 +11,13 @@ This is prediction rather than detection. I train a model to separate
 from *interictal* windows (more than one hour from any seizure), so that an
 alarm could in principle fire before an event rather than flag it as it occurs.
 
-> **Project status.** I processed the complete 14-patient cohort. The headline
-> result is a negative one, and I report it as such: pooled, cross-patient
-> prediction from classical features does not generalize on this dataset. I
-> treat the numbers below as a rigorous baseline that future work must beat, not
-> as a working predictor.
+> **Project status.** I processed the complete 14-patient cohort and evaluated
+> two regimes. Pooled, cross-patient prediction does not generalize (AUC about
+> 0.47, at or below chance), which is the honest negative baseline. Patient
+> specific (personalized) models, trained and tested within one person, recover
+> real signal (pooled AUC about 0.71). That contrast is the main result: preictal
+> structure is largely patient-specific, so the personalized setting is the one
+> worth pursuing.
 
 ## Results
 
@@ -25,45 +27,59 @@ clinical question, how many seizures the system anticipates and how often it
 raises a false alarm, because a single artefact can flip dozens of adjacent
 windows and distort the window-level numbers in both directions.
 
-**Window level.** Patient-grouped 5-fold cross-validation (no patient appears in
-both train and test), 19-channel 10-20 montage, 380 features per epoch, 28,936
-windows (13,607 preictal and 15,329 interictal) across 14 patients:
+**Cross-patient, window level.** Patient-grouped 5-fold cross-validation (no
+patient appears in both train and test), 19-channel 10-20 montage, 514 features
+per epoch, 28,936 windows (13,607 preictal and 15,329 interictal) across 14
+patients:
 
 | Model | ROC-AUC | Sensitivity | Specificity | F1 |
 |---|---|---|---|---|
-| Logistic regression | 0.47 | 0.45 | 0.50 | 0.43 |
-| Random forest | 0.42 | 0.43 | 0.46 | 0.41 |
+| Logistic regression | 0.47 | 0.46 | 0.49 | 0.43 |
+| Random forest | 0.42 | 0.43 | 0.46 | 0.42 |
 
-**Alarm level.** Firing-Power post-processing (SPH 5 min, SOP 30 min), logistic
-regression, same patient-grouped cross-validation, with the alarm threshold
-selected on the training patients only:
+**Cross-patient, alarm level.** Firing-Power post-processing (SPH 5 min, SOP 30
+min), logistic regression, same patient-grouped cross-validation, with the alarm
+threshold selected on the training patients only:
 
 | Operating point | Event sensitivity | FPR/h | Warning time | Random predictor | p |
 |---|---|---|---|---|---|
-| Default (theta = 0.5) | 32/42 = 0.76 | 2.10 | 33.2 min | 0.65 | 0.086 |
-| Tuned threshold | 21/42 = 0.50 | 1.14 | 31.8 min | 0.44 | 0.244 |
+| Default (theta = 0.5) | 32/42 = 0.76 | 2.01 | 32.5 min | 0.63 | 0.056 |
+| Tuned threshold | 21/42 = 0.50 | 1.42 | 30.6 min | 0.51 | 0.600 |
+
+**Personalized (patient-specific), window level.** Leave-one-seizure-out
+cross-validation within each patient, logistic regression, 11 of 14 patients
+evaluable (the other three lack a second seizure or any captured interictal
+data):
+
+| | ROC-AUC |
+|---|---|
+| Mean across patients | 0.69 |
+| Pooled | 0.71 |
+| Best patient (PN03) | 0.98 |
+| Worst patient (PN06) | 0.40 |
 
 ### What I read from this
 
 On an initial three-patient subset I had measured an ROC-AUC of 0.65, which
 looked encouraging. On all 14 patients the cross-patient AUC falls to roughly
-0.47, at or slightly below chance. This is not a defect in the pipeline. It is
-the generalization gap that the seizure-prediction literature documents
-repeatedly: a model fit on a few patients rarely transfers to unseen patients,
-because preictal signatures are largely patient-specific, and small samples make
-cross-patient estimates look far better than they are.
+0.47, at or slightly below chance, and the alarm layer does not beat an
+unspecific random predictor (p = 0.056 at the default operating point, p = 0.60
+tuned). This is not a defect in the pipeline. It is the generalization gap that
+the seizure-prediction literature documents repeatedly: a model fit on some
+patients transfers poorly to unseen patients, because preictal signatures are
+largely patient-specific, and small samples make cross-patient estimates look
+far better than they are.
 
-The alarm layer tells the same story in clinical terms. At its most sensitive
-operating point the system flags 32 of 42 seizures, but it does so at 2.1 false
-alarms per hour, and at that alarm rate an unspecific random predictor would
-already anticipate about 65 percent of seizures by chance. The result is
-therefore not statistically distinguishable from chance (p = 0.086). Tightening
-the threshold lowers the false-alarm rate to 1.14 per hour but drops sensitivity
-to chance level as well.
+The personalized evaluation confirms this directly. When I train and test within
+a single patient, the pooled ROC-AUC rises to 0.71, and individual patients
+range from highly predictable (PN03 at 0.98, PN05 at 0.98, PN10 at 0.81) to no
+better than chance (PN06 at 0.40, PN09 at 0.47). The signal is real but it lives
+inside each patient, not across the population.
 
-I regard this as the honest and useful outcome of the project: a correctly
-evaluated cross-patient baseline, and clear evidence that the next step is
-patient-specific modelling rather than more pooled features.
+I regard this contrast as the honest and useful outcome of the project: a
+correctly evaluated cross-patient baseline that does not beat chance, and a
+patient-specific result that does, which is exactly the regime the clinical
+literature treats as viable.
 
 > **Caveat on the sensitivity figure.** My loader crops each seizure's run-up
 > into a tight preictal segment, so a preictal crop is dominated by preictal
@@ -78,9 +94,9 @@ patient-specific modelling rather than more pooled features.
 ```
 load EDF -> preprocess -> QC -> windowed features -> classical ML -> alarm layer
  (MNE)      notch 50 Hz   SNR   5 s epochs           grouped CV      Firing Power
-            bandpass      flat  spectral + temporal  LogReg / RF     event Sens
-            bad-chan interp clip                      AUC Sens Spec   FPR/h + chance
-            avg reference
+            bandpass      flat  spectral+temporal    LogReg / RF     event Sens
+            bad-chan interp clip +nonlinear          cross-patient   FPR/h + chance
+            avg reference                            + personalized
 ```
 
 - **Preprocessing** (`src/preprocess.py`). I apply a 50 Hz notch filter and its
@@ -92,10 +108,14 @@ load EDF -> preprocess -> QC -> windowed features -> classical ML -> alarm layer
   clipping, and apply a pass/fail gate.
 - **Features** (`src/features.py`). For each window I extract spectral features
   (absolute and relative band power in delta, theta, alpha, beta, and gamma; the
-  theta/beta and slowing ratios; and the 95 percent spectral edge frequency) and
-  temporal features (line length, RMS, variance, zero-crossing rate, and the
-  three Hjorth parameters). I harmonize every patient onto a fixed 19-channel
-  10-20 montage, giving 380 features per epoch.
+  theta/beta, theta/alpha, beta/alpha, delta/theta and slowing ratios; the 95
+  percent spectral edge frequency, spectral centroid, alpha peak frequency, and
+  the 1/f power-spectral exponent), temporal features (line length, RMS,
+  variance, zero-crossing rate, and the three Hjorth parameters), one nonlinear
+  complexity feature (permutation entropy), and a global frontal-alpha-asymmetry
+  term. The ratio, index, and complexity definitions follow the NeuroSkill EEG
+  data reference. I harmonize every patient onto a fixed 19-channel 10-20
+  montage, giving 514 features per epoch.
 - **Labelling** (`src/dataset.py`). I label preictal against interictal using a
   seizure prediction horizon and postictal and guard exclusions to prevent
   leakage, and I emit per-epoch timing so the alarm layer can rebuild each
@@ -111,6 +131,10 @@ load EDF -> preprocess -> QC -> windowed features -> classical ML -> alarm layer
   warning time, and I benchmark each result against the sensitivity that an
   unspecific random predictor would reach at the same false-alarm rate, with a
   binomial p-value.
+- **Personalized models** (`src/personalized.py`). I run leave-one-seizure-out
+  cross-validation within each patient, grouping preictal windows by seizure so
+  the held-out seizure never leaks into training, and I report per-patient and
+  pooled AUC. This is the regime that actually carries signal.
 
 ### Defining prediction precisely (SPH and SOP)
 
@@ -164,7 +188,8 @@ aws s3 sync --no-sign-request \
 - [x] Honest threshold selection on training patients, with no test-set peeking
 - [x] Full 14-patient cohort processed on a disk-constrained machine
 - [x] Rigorous negative result: pooled cross-patient prediction does not beat chance
-- [ ] Patient-specific (personalized) models, the likely source of real signal
+- [x] Patient-specific (personalized) models: leave-one-seizure-out, pooled AUC 0.71
+- [x] Expanded feature set (spectral ratios, 1/f exponent, permutation entropy, FAA)
 - [ ] Continuous multi-hour streams so event sensitivity is not crop-optimistic
 - [ ] Phase 2: a PyTorch temporal CNN on raw or spectrogram windows
 
@@ -179,6 +204,10 @@ aws s3 sync --no-sign-request \
   Standard for event-based scoring and false-alarm reporting.
 - [A review of seizure-prediction evaluation pitfalls](https://pmc.ncbi.nlm.nih.gov/articles/PMC9732735/),
   on why window-level metrics and random-split cross-validation overstate performance.
+- NeuroSkill EEG data reference. Source of the spectral ratio, index, and
+  nonlinear-complexity feature definitions (band powers, tar/bar/dtr, spectral
+  centroid, alpha peak frequency, 1/f exponent, permutation entropy, frontal
+  alpha asymmetry).
 
 ## Data and license
 

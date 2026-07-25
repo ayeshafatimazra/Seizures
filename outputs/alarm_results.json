@@ -11,21 +11,21 @@
       ],
       "default": {
         "threshold": 0.5,
-        "sensitivity": 0.7777777777777778,
-        "fpr_per_h": 1.1624124915197398,
-        "warning_min": 34.702380952380956,
+        "sensitivity": 0.6666666666666666,
+        "fpr_per_h": 1.4530156143996749,
+        "warning_min": 33.416666666666664,
         "seizures": 9,
-        "predicted": 7,
-        "false_alarms": 4,
+        "predicted": 6,
+        "false_alarms": 5,
         "interictal_h": 3.4411192491319444
       },
       "tuned": {
         "threshold": 0.7,
-        "sensitivity": 0.1111111111111111,
+        "sensitivity": 0.0,
         "fpr_per_h": 0.0,
-        "warning_min": 35.0,
+        "warning_min": NaN,
         "seizures": 9,
-        "predicted": 1,
+        "predicted": 0,
         "false_alarms": 0,
         "interictal_h": 3.4411192491319444
       }
@@ -39,21 +39,21 @@
       "default": {
         "threshold": 0.5,
         "sensitivity": 0.7142857142857143,
-        "fpr_per_h": 2.508705110552069,
-        "warning_min": 35.0,
+        "fpr_per_h": 2.2996463513393963,
+        "warning_min": 33.81666666666667,
         "seizures": 7,
         "predicted": 5,
-        "false_alarms": 12,
+        "false_alarms": 11,
         "interictal_h": 4.7833441840277775
       },
       "tuned": {
         "threshold": 0.65,
-        "sensitivity": 0.7142857142857143,
-        "fpr_per_h": 1.045293796063362,
-        "warning_min": 34.983333333333334,
+        "sensitivity": 0.5714285714285714,
+        "fpr_per_h": 1.8815288329140514,
+        "warning_min": 34.979166666666664,
         "seizures": 7,
-        "predicted": 5,
-        "false_alarms": 5,
+        "predicted": 4,
+        "false_alarms": 9,
         "interictal_h": 4.7833441840277775
       }
     },
@@ -66,21 +66,21 @@
       "default": {
         "threshold": 0.5,
         "sensitivity": 0.8333333333333334,
-        "fpr_per_h": 2.5174770733099785,
+        "fpr_per_h": 2.3076873172008137,
         "warning_min": 34.31666666666667,
         "seizures": 6,
         "predicted": 5,
-        "false_alarms": 12,
+        "false_alarms": 11,
         "interictal_h": 4.766676974826389
       },
       "tuned": {
-        "threshold": 0.6,
+        "threshold": 0.65,
         "sensitivity": 0.6666666666666666,
-        "fpr_per_h": 2.3076873172008137,
-        "warning_min": 29.6875,
+        "fpr_per_h": 2.097897561091649,
+        "warning_min": 34.75,
         "seizures": 6,
         "predicted": 4,
-        "false_alarms": 11,
+        "false_alarms": 10,
         "interictal_h": 4.766676974826389
       }
     },
@@ -93,22 +93,22 @@
       ],
       "default": {
         "threshold": 0.5,
-        "sensitivity": 0.75,
+        "sensitivity": 0.9166666666666666,
         "fpr_per_h": 1.943314203658422,
-        "warning_min": 26.99814814814815,
+        "warning_min": 26.618181818181817,
         "seizures": 12,
-        "predicted": 9,
+        "predicted": 11,
         "false_alarms": 8,
         "interictal_h": 4.1166786024305555
       },
       "tuned": {
         "threshold": 0.65,
-        "sensitivity": 0.5833333333333334,
-        "fpr_per_h": 1.4574856527438165,
-        "warning_min": 24.616666666666667,
+        "sensitivity": 0.6666666666666666,
+        "fpr_per_h": 1.700399928201119,
+        "warning_min": 23.620833333333334,
         "seizures": 12,
-        "predicted": 7,
-        "false_alarms": 6,
+        "predicted": 8,
+        "false_alarms": 7,
         "interictal_h": 4.1166786024305555
       }
     },
@@ -120,22 +120,22 @@
       ],
       "default": {
         "threshold": 0.5,
-        "sensitivity": 0.75,
-        "fpr_per_h": 2.097897561091649,
-        "warning_min": 34.97222222222222,
+        "sensitivity": 0.625,
+        "fpr_per_h": 1.888107804982484,
+        "warning_min": 34.46666666666667,
         "seizures": 8,
-        "predicted": 6,
-        "false_alarms": 10,
+        "predicted": 5,
+        "false_alarms": 9,
         "interictal_h": 4.766676974826389
       },
       "tuned": {
-        "threshold": 0.7,
-        "sensitivity": 0.5,
-        "fpr_per_h": 0.6293692683274946,
-        "warning_min": 34.708333333333336,
+        "threshold": 0.65,
+        "sensitivity": 0.625,
+        "fpr_per_h": 1.0489487805458244,
+        "warning_min": 28.916666666666668,
         "seizures": 8,
-        "predicted": 4,
-        "false_alarms": 3,
+        "predicted": 5,
+        "false_alarms": 5,
         "interictal_h": 4.766676974826389
       }
     }
@@ -143,25 +143,25 @@
   "pooled": {
     "default": {
       "sensitivity": 0.7619047619047619,
-      "fpr_per_h": 2.1029055952206837,
-      "warning_min": 33.1978835978836,
+      "fpr_per_h": 2.0114749171676105,
+      "warning_min": 32.5269696969697,
       "seizures": 42,
       "predicted": 32,
-      "false_alarms": 46,
+      "false_alarms": 44,
       "interictal_h": 21.874495985243055,
-      "chance_sensitivity": 0.6505702705003299,
-      "p_value_vs_chance": 0.085535970984424
+      "chance_sensitivity": 0.6342252084426381,
+      "p_value_vs_chance": 0.05646551274136105
     },
     "tuned": {
       "sensitivity": 0.5,
-      "fpr_per_h": 1.142883475663415,
-      "warning_min": 31.799166666666668,
+      "fpr_per_h": 1.4171755098226346,
+      "warning_min": 30.566666666666666,
       "seizures": 42,
       "predicted": 21,
-      "false_alarms": 25,
+      "false_alarms": 31,
       "interictal_h": 21.874495985243055,
-      "chance_sensitivity": 0.4352893132497455,
-      "p_value_vs_chance": 0.24413058975518892
+      "chance_sensitivity": 0.5076609899284228,
+      "p_value_vs_chance": 0.6002093180332003
     }
   }
 }

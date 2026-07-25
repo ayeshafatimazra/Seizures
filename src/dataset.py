@@ -68,7 +68,7 @@ def build_epochs(recordings, verbose=False):
             lab = _label_epoch(t0, t1, rec.seizures)
             if lab is None:
                 continue
-            vec, names = extract(rec.data[:, start:start + w], rec.sfreq)
+            vec, names = extract(rec.data[:, start:start + w], rec.sfreq, rec.ch_names)
             feat_names = feat_names or names
             X.append(vec)
             y.append(lab)

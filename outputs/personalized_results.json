@@ -1,0 +1,83 @@
+{
+  "n_patients_evaluable": 11,
+  "n_patients_total": 14,
+  "mean_patient_auc": 0.6858434981583204,
+  "pooled_auc": 0.7058111617383644,
+  "per_patient": {
+    "PN00": {
+      "skipped": "too few windows (pos=709, neg=0)"
+    },
+    "PN01": {
+      "seizures": 2,
+      "auc": 0.7064872685185186,
+      "sensitivity": 0.3555555555555555,
+      "specificity": 0.9604166666666667
+    },
+    "PN03": {
+      "seizures": 2,
+      "auc": 0.9817216435185185,
+      "sensitivity": 0.8097222222222222,
+      "specificity": 0.9989583333333334
+    },
+    "PN05": {
+      "seizures": 3,
+      "auc": 0.9769502314814816,
+      "sensitivity": 0.7953703703703704,
+      "specificity": 0.9874999999999999
+    },
+    "PN06": {
+      "seizures": 2,
+      "auc": 0.399754050925926,
+      "sensitivity": 0.04861111111111111,
+      "specificity": 0.9666666666666667
+    },
+    "PN07": {
+      "skipped": "only 1 seizure(s)"
+    },
+    "PN09": {
+      "seizures": 3,
+      "auc": 0.4668344907407407,
+      "sensitivity": 0.0925925925925926,
+      "specificity": 0.8854166666666666
+    },
+    "PN10": {
+      "seizures": 9,
+      "auc": 0.8055683889664139,
+      "sensitivity": 0.662962962962963,
+      "specificity": 0.9147431219674567
+    },
+    "PN11": {
+      "skipped": "only 1 seizure(s)"
+    },
+    "PN12": {
+      "seizures": 3,
+      "auc": 0.5685707196331345,
+      "sensitivity": 0.13234523089332526,
+      "specificity": 0.9697916666666666
+    },
+    "PN13": {
+      "seizures": 3,
+      "auc": 0.6199093364197531,
+      "sensitivity": 0.14537037037037037,
+      "specificity": 0.93125
+    },
+    "PN14": {
+      "seizures": 4,
+      "auc": 0.5953313078703704,
+      "sensitivity": 0.27847222222222223,
+      "specificity": 0.9557291666666667
+    },
+    "PN16": {
+      "seizures": 2,
+      "auc": 0.7144299768518518,
+      "sensitivity": 0.3902777777777777,
+      "specificity": 0.9208333333333334
+    },
+    "PN17": {
+      "seizures": 2,
+      "auc": 0.7087210648148148,
+      "sensitivity": 0.4,
+      "specificity": 0.9572916666666667
+    }
+  }
+}
